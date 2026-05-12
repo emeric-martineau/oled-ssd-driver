@@ -1,0 +1,12 @@
+[package]
+name = "stm32-f1-ssd1306b-example"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+oled-ssd-driver = { path = "../../.." }
+stm32f1xx-hal = { version = "0.11.0", features = ["stm32f103", "rt"] }
+cortex-m = { version = "0.7", features = ["critical-section-single-core"] }
+cortex-m-rt = "0.7"
+embedded-graphics = "0.8.1"
+panic-halt = "1.0"

@@ -34,8 +34,8 @@ documentations/        # SSD1306 datasheets (reference for all register/command 
 src/                   # Library source (no_std)
 features/              # Feature specs (numbered, with status tracking)
 examples/
-    esp32-wroom/       # Full example for ESP32-WROOM (separate Cargo project)
-    stm32-f1/         # Full example for STM32F1 "Blue Pill" (separate Cargo project)
+    esp32-wroom-32/    # Full example for ESP32-WROOM (separate Cargo project)
+    stm32-f1/          # Full example for STM32F1 "Blue Pill" (separate Cargo project)
 ```
 
 ## Architecture guidelines
