@@ -1,0 +1,19 @@
+[package]
+name = "esp32-wroom-ch1116-example"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+oled-ssd-driver = { path = "../../.." }
+esp-hal = { version = "1.1.1", features = ["esp32"] }
+esp-bootloader-esp-idf = { version = "0.5.0", features = ["esp32"] }
+embedded-graphics = "0.8.1"
+
+[profile.dev]
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1
+debug         = 2
+lto           = 'fat'
+opt-level     = 's'

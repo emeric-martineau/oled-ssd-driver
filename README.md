@@ -1,17 +1,17 @@
 # oled-ssd-driver
 
-A platform-independent, `#![no_std]` Rust driver for **SSD1306**, **SSD1306B**, **SSD1312**, and **SSD1315** OLED display controllers.
+A platform-independent, `#![no_std]` Rust driver for **SSD1306**, **SSD1306B**, **SSD1312**, **SSD1315**, and **CH1116** OLED display controllers.
 
 Works on any embedded target (ESP32, STM32, nRF, RP2040, etc.) with zero heap allocation.
 
 ## Features
 
-- **Quad controller support** -- `Ssd1306`, `Ssd1306b`, `Ssd1312`, and `Ssd1315` structs with separate, optimized init sequences
+- **Five controller support** -- `Ssd1306`, `Ssd1306b`, `Ssd1312`, `Ssd1315`, and `Ch1116` structs with separate, optimized init sequences
 - **I2C and SPI** -- Generic over `embedded-hal 1.0` bus traits
 - **Sync and async** -- Full async API via `embedded-hal-async`
 - **embedded-graphics integration** -- Implements `DrawTarget` for the [embedded-graphics](https://github.com/embedded-graphics/embedded-graphics) ecosystem
 - **No lifetimes on the driver struct** -- Simple ownership model, easy to store in global statics
-- **1024-byte internal framebuffer** -- 128x64 monochrome, flushed on demand
+- **Internal framebuffer** -- Up to 132x64 monochrome (1056 bytes for CH1116, 1024 bytes for 128x64), flushed on demand
 
 ## Supported Controllers
 
@@ -21,6 +21,7 @@ Works on any embedded target (ESP32, STM32, nRF, RP2040, etc.) with zero heap al
 | SSD1306B | `Ssd1306b<DI>` | 4 charge pump voltages (6.0-9.0V), internal IREF, 4 VCOMH levels, fade/blink, zoom, content scroll, column-bounded scrolling |
 | SSD1312 | `Ssd1312<DI>` | 4 charge pump voltages (7.5-10.0V), internal/external IREF, 4 VCOMH levels, content scroll, column-bounded scrolling |
 | SSD1315 | `Ssd1315<DI>` | 3 charge pump voltages (7.5-9.0V), internal IREF, 4 VCOMH levels, fade/blink, zoom, content scroll, column-bounded scrolling |
+| CH1116 | `Ch1116<DI>` | 132x64 resolution, 4 pump voltages (6.4-10.0V), internal/external IREF with 4 resistor values, breathing light effect, horizontal scroll with column bounds, page-mode addressing |
 
 ## Quick Start
 
@@ -104,6 +105,25 @@ display.clear_buffer();
 
 // SSD1315-specific: select charge pump voltage (7.5V, 8.5V, or 9.0V)
 display.set_charge_pump_voltage(ChargePumpVoltage1315::V8_5).unwrap();
+
+// ... draw with embedded-graphics ...
+
+display.flush().unwrap();
+```
+
+### CH1116 over I2C
+
+```rust
+use oled_ssd_driver::{I2cInterface, Ch1116, PumpVoltageCh1116, DEFAULT_I2C_ADDRESS};
+
+let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
+let mut display = Ch1116::new(interface);
+
+display.init().unwrap();
+display.clear_buffer();
+
+// CH1116-specific: select pump voltage (6.4V, 7.4V, 9.0V, or 10.0V)
+display.set_pump_voltage(PumpVoltageCh1116::V9_0).unwrap();
 
 // ... draw with embedded-graphics ...
 
@@ -236,6 +256,42 @@ display.start_content_scroll(
 display.stop_scroll().unwrap();
 ```
 
+## CH1116-Specific API
+
+The `Ch1116` driver exposes additional hardware features:
+
+```rust
+use oled_ssd_driver::{Ch1116, PumpVoltageCh1116, IrefSourceCh1116, IrefResistorCh1116,
+    BreathingBrightnessCh1116, ScrollDirectionCh1116, ScrollIntervalCh1116, ScrollModeCh1116};
+
+// Pump voltage (6.4V, 7.4V, 9.0V, 10.0V)
+display.set_pump_voltage(PumpVoltageCh1116::V9_0).unwrap();
+
+// IREF source and resistor (internal/external, 510K/310K/220K/180K)
+display.set_iref(IrefSourceCh1116::Internal, IrefResistorCh1116::K310).unwrap();
+
+// VCOM deselect level (raw 8-bit value, see datasheet)
+display.set_vcom_deselect(0x35).unwrap();
+
+// DC-DC converter ON/OFF
+display.set_dc_dc(true).unwrap();
+
+// Breathing light effect (ON/OFF, brightness, interval 1-8 frames)
+display.set_breathing_light(true, BreathingBrightnessCh1116::Half, 3).unwrap();
+
+// Horizontal scroll
+display.set_scroll_columns(10, 100).unwrap();
+display.start_horizontal_scroll(
+    ScrollDirectionCh1116::Right, 0, 7,
+    ScrollIntervalCh1116::Frames6
+).unwrap();
+
+// Scroll mode (continuous or single screen)
+display.set_scroll_mode(ScrollModeCh1116::SingleScreen).unwrap();
+
+display.stop_scroll().unwrap();
+```
+
 ## Hardware Wiring
 
 ### I2C
@@ -272,11 +328,13 @@ examples/
         ssd1306b/      # ESP32 + SSD1306B over I2C
         ssd1312/       # ESP32 + SSD1312 over I2C
         ssd1315/       # ESP32 + SSD1315 over I2C
+        ch1116/        # ESP32 + CH1116 over I2C
     stm32-f1/
         ssd1306/       # STM32F103 "Blue Pill" + SSD1306 over I2C
         ssd1306b/      # STM32F103 "Blue Pill" + SSD1306B over I2C
         ssd1312/       # STM32F103 "Blue Pill" + SSD1312 over I2C
         ssd1315/       # STM32F103 "Blue Pill" + SSD1315 over I2C
+        ch1116/        # STM32F103 "Blue Pill" + CH1116 over I2C
 ```
 
 Each example draws text, lines, circles, and a bitmap image.

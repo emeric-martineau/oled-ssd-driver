@@ -2,7 +2,7 @@ use crate::command::{AddressingMode, ComPinConfig, Command, VcomhLevel};
 use crate::error::DisplayError;
 use crate::interface::{AsyncDisplayInterface, DisplayInterface};
 
-pub(crate) const MAX_WIDTH: u8 = 128;
+pub(crate) const MAX_WIDTH: u8 = 132;
 pub(crate) const MAX_PAGES: u8 = 8;
 pub(crate) const BUFFER_SIZE: usize = MAX_WIDTH as usize * MAX_PAGES as usize;
 
@@ -23,6 +23,8 @@ impl DisplaySize {
     }
 }
 
+/// 132x64 (CH1116 default)
+pub const SIZE_132X64: DisplaySize = DisplaySize::new(132, 64);
 /// 128x64 (default)
 pub const SIZE_128X64: DisplaySize = DisplaySize::new(128, 64);
 /// 128x32
