@@ -45,6 +45,17 @@ examples/
 - Implement `embedded_graphics::draw_target::DrawTarget` to allow users to draw with the embedded-graphics ecosystem.
 - No heap allocation (`#![no_std]`, no `alloc`).
 
+## ESP32 examples requirements
+
+Each ESP32 example (`examples/esp32-wroom-32/*/`) requires these additional files beyond `Cargo.toml` and `src/main.rs`:
+
+- `.cargo/config.toml` — target configuration (xtensa-esp32-none-elf), runner, rustflags, build-std
+- `.clippy.toml` — clippy configuration (stack-size-threshold)
+- `build.rs` — linker script setup and error-handling hints
+- `rust-toolchain.toml` — toolchain channel (`esp`)
+
+Copy these from an existing ESP32 example (e.g., `ssd1306/`) when creating a new one.
+
 ## Workflow conventions
 
 - All code changes are produced by the AI agent.

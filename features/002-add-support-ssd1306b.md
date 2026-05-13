@@ -1,4 +1,4 @@
-# 001 - Add support of oled driver ssd1306b
+# 002 - Add support of oled driver ssd1306b
 
 ## Status: DONE
 

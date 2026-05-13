@@ -1,4 +1,4 @@
-# 001 - Add support custom screen size
+# 003 - Add support custom screen size
 
 ## Status: DONE
 
