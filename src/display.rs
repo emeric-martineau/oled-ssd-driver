@@ -6,23 +6,30 @@ use embedded_graphics_core::{
 };
 
 use crate::command::{Command, ScrollDirection, ScrollInterval};
-use crate::display_common::{DisplayCore, BUFFER_SIZE};
+use crate::display_common::{DisplayCore, DisplaySize, SIZE_128X64};
 use crate::error::DisplayError;
 use crate::interface::{AsyncDisplayInterface, DisplayInterface};
-use crate::{HEIGHT, WIDTH};
 
 /// SSD1306 OLED display driver.
 ///
 /// Generic over the bus interface `DI` (I2C or SPI).
-/// Owns an internal framebuffer (1024 bytes for 128x64).
+/// Owns an internal framebuffer sized for the configured display dimensions.
 pub struct Ssd1306<DI> {
     core: DisplayCore<DI>,
 }
 
 impl<DI> Ssd1306<DI> {
+    /// Create a new SSD1306 driver with default 128x64 display size.
     pub fn new(interface: DI) -> Self {
         Self {
-            core: DisplayCore::new(interface),
+            core: DisplayCore::new(interface, SIZE_128X64),
+        }
+    }
+
+    /// Create a new SSD1306 driver with a custom display size.
+    pub fn new_with_size(interface: DI, size: DisplaySize) -> Self {
+        Self {
+            core: DisplayCore::new(interface, size),
         }
     }
 
@@ -40,8 +47,12 @@ impl<DI> Ssd1306<DI> {
         self.core.clear_buffer();
     }
 
-    pub fn buffer(&self) -> &[u8; BUFFER_SIZE] {
-        &self.core.buffer
+    pub fn buffer(&self) -> &[u8] {
+        self.core.active_buffer()
+    }
+
+    pub fn size_config(&self) -> DisplaySize {
+        self.core.size
     }
 }
 
@@ -55,9 +66,7 @@ impl<DI: DisplayInterface> Ssd1306<DI> {
     /// SSD1306 §8.9 — Power ON initialization sequence.
     pub fn init(&mut self) -> Result<(), DisplayError> {
         self.core.init_common()?;
-        // SSD1306 §8.9 — Enable charge pump
         self.send_command(Command::SetChargePump(true))?;
-        // SSD1306 §10.1.12 — Display ON
         self.send_command(Command::DisplayOn(true))?;
         Ok(())
     }
@@ -90,7 +99,8 @@ impl<DI: DisplayInterface> Ssd1306<DI> {
         end_page: u8,
         interval: ScrollInterval,
     ) -> Result<(), DisplayError> {
-        if start_page > 7 || end_page > 7 || end_page < start_page {
+        let max_page = self.core.size.pages() - 1;
+        if start_page > max_page || end_page > max_page || end_page < start_page {
             return Err(DisplayError::InvalidArgument);
         }
         self.core.stop_scroll()?;
@@ -107,7 +117,6 @@ impl<DI: DisplayInterface> Ssd1306<DI> {
             0x00,
             0xFF,
         ])?;
-        // SSD1306 §10.2.4 — Activate scroll (2Fh)
         self.core.interface.send_command(&[0x2F])
     }
 
@@ -157,7 +166,7 @@ impl<DI: AsyncDisplayInterface> Ssd1306<DI> {
 
 impl<DI> OriginDimensions for Ssd1306<DI> {
     fn size(&self) -> Size {
-        Size::new(WIDTH as u32, HEIGHT as u32)
+        Size::new(self.core.size.width as u32, self.core.size.height as u32)
     }
 }
 
@@ -169,8 +178,10 @@ impl<DI> DrawTarget for Ssd1306<DI> {
     where
         I: IntoIterator<Item = Pixel<Self::Color>>,
     {
+        let w = self.core.size.width as i32;
+        let h = self.core.size.height as i32;
         for Pixel(coord, color) in pixels {
-            if coord.x >= 0 && coord.x < WIDTH as i32 && coord.y >= 0 && coord.y < HEIGHT as i32 {
+            if coord.x >= 0 && coord.x < w && coord.y >= 0 && coord.y < h {
                 self.set_pixel(coord.x as u8, coord.y as u8, color.is_on());
             }
         }

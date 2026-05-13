@@ -1,30 +1,59 @@
-use crate::command::{AddressingMode, Command, VcomhLevel};
+use crate::command::{AddressingMode, ComPinConfig, Command, VcomhLevel};
 use crate::error::DisplayError;
 use crate::interface::{AsyncDisplayInterface, DisplayInterface};
-use crate::{HEIGHT, PAGES, WIDTH};
 
-pub(crate) const BUFFER_SIZE: usize = WIDTH as usize * PAGES as usize;
+pub(crate) const MAX_WIDTH: u8 = 128;
+pub(crate) const MAX_PAGES: u8 = 8;
+pub(crate) const BUFFER_SIZE: usize = MAX_WIDTH as usize * MAX_PAGES as usize;
+
+/// Display dimensions configuration.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DisplaySize {
+    pub width: u8,
+    pub height: u8,
+}
+
+impl DisplaySize {
+    pub const fn new(width: u8, height: u8) -> Self {
+        Self { width, height }
+    }
+
+    pub(crate) const fn pages(&self) -> u8 {
+        self.height / 8
+    }
+}
+
+/// 128x64 (default)
+pub const SIZE_128X64: DisplaySize = DisplaySize::new(128, 64);
+/// 128x32
+pub const SIZE_128X32: DisplaySize = DisplaySize::new(128, 32);
+/// 96x16
+pub const SIZE_96X16: DisplaySize = DisplaySize::new(96, 16);
+/// 64x48
+pub const SIZE_64X48: DisplaySize = DisplaySize::new(64, 48);
 
 pub(crate) struct DisplayCore<DI> {
     pub interface: DI,
     pub buffer: [u8; BUFFER_SIZE],
+    pub size: DisplaySize,
 }
 
 impl<DI> DisplayCore<DI> {
-    pub fn new(interface: DI) -> Self {
+    pub fn new(interface: DI, size: DisplaySize) -> Self {
         Self {
             interface,
             buffer: [0u8; BUFFER_SIZE],
+            size,
         }
     }
 
     pub fn set_pixel(&mut self, x: u8, y: u8, on: bool) {
-        if x >= WIDTH || y >= HEIGHT {
+        if x >= self.size.width || y >= self.size.height {
             return;
         }
         let page = (y / 8) as usize;
         let bit = y % 8;
-        let idx = page * WIDTH as usize + x as usize;
+        let idx = page * self.size.width as usize + x as usize;
         if on {
             self.buffer[idx] |= 1 << bit;
         } else {
@@ -33,7 +62,13 @@ impl<DI> DisplayCore<DI> {
     }
 
     pub fn clear_buffer(&mut self) {
-        self.buffer = [0u8; BUFFER_SIZE];
+        let len = self.size.width as usize * self.size.pages() as usize;
+        self.buffer[..len].fill(0);
+    }
+
+    pub fn active_buffer(&self) -> &[u8] {
+        let len = self.size.width as usize * self.size.pages() as usize;
+        &self.buffer[..len]
     }
 }
 
@@ -46,13 +81,14 @@ impl<DI: DisplayInterface> DisplayCore<DI> {
     pub fn flush(&mut self) -> Result<(), DisplayError> {
         self.send_command(Command::SetColumnAddress {
             start: 0,
-            end: WIDTH - 1,
+            end: self.size.width - 1,
         })?;
         self.send_command(Command::SetPageAddress {
             start: 0,
-            end: PAGES - 1,
+            end: self.size.pages() - 1,
         })?;
-        self.interface.send_data(&self.buffer)
+        let len = self.size.width as usize * self.size.pages() as usize;
+        self.interface.send_data(&self.buffer[..len])
     }
 
     pub fn display_on(&mut self, on: bool) -> Result<(), DisplayError> {
@@ -72,20 +108,27 @@ impl<DI: DisplayInterface> DisplayCore<DI> {
     }
 
     pub fn init_common(&mut self) -> Result<(), DisplayError> {
+        let com_pin_config = if self.size.height <= 32 {
+            ComPinConfig {
+                alternative: false,
+                left_right_remap: false,
+            }
+        } else {
+            ComPinConfig::default()
+        };
+
         self.send_command(Command::DisplayOn(false))?;
         self.send_command(Command::SetDisplayClock {
             divide_ratio: 0,
             osc_freq: 0x8,
         })?;
-        self.send_command(Command::SetMultiplexRatio(63))?;
+        self.send_command(Command::SetMultiplexRatio(self.size.height - 1))?;
         self.send_command(Command::SetDisplayOffset(0))?;
         self.send_command(Command::SetDisplayStartLine(0))?;
         self.send_command(Command::SetAddressingMode(AddressingMode::Horizontal))?;
         self.send_command(Command::SetSegmentRemap(true))?;
         self.send_command(Command::SetComScanDirection(true))?;
-        self.send_command(Command::SetComPinConfig(
-            crate::command::ComPinConfig::default(),
-        ))?;
+        self.send_command(Command::SetComPinConfig(com_pin_config))?;
         self.send_command(Command::SetContrast(0x7F))?;
         self.send_command(Command::SetPreChargePeriod {
             phase1: 0x1,
@@ -108,15 +151,16 @@ impl<DI: AsyncDisplayInterface> DisplayCore<DI> {
     pub async fn flush_async(&mut self) -> Result<(), DisplayError> {
         self.send_command_async(Command::SetColumnAddress {
             start: 0,
-            end: WIDTH - 1,
+            end: self.size.width - 1,
         })
         .await?;
         self.send_command_async(Command::SetPageAddress {
             start: 0,
-            end: PAGES - 1,
+            end: self.size.pages() - 1,
         })
         .await?;
-        self.interface.send_data(&self.buffer).await
+        let len = self.size.width as usize * self.size.pages() as usize;
+        self.interface.send_data(&self.buffer[..len]).await
     }
 
     pub async fn display_on_async(&mut self, on: bool) -> Result<(), DisplayError> {
@@ -134,13 +178,22 @@ impl<DI: AsyncDisplayInterface> DisplayCore<DI> {
     }
 
     pub async fn init_common_async(&mut self) -> Result<(), DisplayError> {
+        let com_pin_config = if self.size.height <= 32 {
+            ComPinConfig {
+                alternative: false,
+                left_right_remap: false,
+            }
+        } else {
+            ComPinConfig::default()
+        };
+
         self.send_command_async(Command::DisplayOn(false)).await?;
         self.send_command_async(Command::SetDisplayClock {
             divide_ratio: 0,
             osc_freq: 0x8,
         })
         .await?;
-        self.send_command_async(Command::SetMultiplexRatio(63))
+        self.send_command_async(Command::SetMultiplexRatio(self.size.height - 1))
             .await?;
         self.send_command_async(Command::SetDisplayOffset(0))
             .await?;
@@ -152,10 +205,8 @@ impl<DI: AsyncDisplayInterface> DisplayCore<DI> {
             .await?;
         self.send_command_async(Command::SetComScanDirection(true))
             .await?;
-        self.send_command_async(Command::SetComPinConfig(
-            crate::command::ComPinConfig::default(),
-        ))
-        .await?;
+        self.send_command_async(Command::SetComPinConfig(com_pin_config))
+            .await?;
         self.send_command_async(Command::SetContrast(0x7F)).await?;
         self.send_command_async(Command::SetPreChargePeriod {
             phase1: 0x1,

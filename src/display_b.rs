@@ -7,23 +7,30 @@ use embedded_graphics_core::{
 
 use crate::command::{Command, ScrollDirection};
 use crate::command_b::{ChargePumpVoltage, FadeMode, IrefSetting, ScrollIntervalB, VcomhLevelB};
-use crate::display_common::{DisplayCore, BUFFER_SIZE};
+use crate::display_common::{DisplayCore, DisplaySize, SIZE_128X64};
 use crate::error::DisplayError;
 use crate::interface::{AsyncDisplayInterface, DisplayInterface};
-use crate::{HEIGHT, WIDTH};
 
 /// SSD1306B OLED display driver.
 ///
 /// Generic over the bus interface `DI` (I2C or SPI).
-/// Owns an internal framebuffer (1024 bytes for 128x64).
+/// Owns an internal framebuffer sized for the configured display dimensions.
 pub struct Ssd1306b<DI> {
     core: DisplayCore<DI>,
 }
 
 impl<DI> Ssd1306b<DI> {
+    /// Create a new SSD1306B driver with default 128x64 display size.
     pub fn new(interface: DI) -> Self {
         Self {
-            core: DisplayCore::new(interface),
+            core: DisplayCore::new(interface, SIZE_128X64),
+        }
+    }
+
+    /// Create a new SSD1306B driver with a custom display size.
+    pub fn new_with_size(interface: DI, size: DisplaySize) -> Self {
+        Self {
+            core: DisplayCore::new(interface, size),
         }
     }
 
@@ -40,8 +47,12 @@ impl<DI> Ssd1306b<DI> {
         self.core.clear_buffer();
     }
 
-    pub fn buffer(&self) -> &[u8; BUFFER_SIZE] {
-        &self.core.buffer
+    pub fn buffer(&self) -> &[u8] {
+        self.core.active_buffer()
+    }
+
+    pub fn size_config(&self) -> DisplaySize {
+        self.core.size
     }
 }
 
@@ -57,7 +68,7 @@ impl<DI: DisplayInterface> Ssd1306b<DI> {
     }
 
     /// SSD1306B §8 — Power ON initialization sequence.
-    /// Configures the display for 128x64, horizontal addressing, charge pump 7.5V, internal IREF.
+    /// Configures the display for the configured size, horizontal addressing, charge pump 7.5V, internal IREF.
     pub fn init(&mut self) -> Result<(), DisplayError> {
         self.core.init_common()?;
         // SSD1306B §8 — Enable internal IREF (A[4]=1, A[5]=0 → 19uA)
@@ -137,10 +148,12 @@ impl<DI: DisplayInterface> Ssd1306b<DI> {
         start_column: u8,
         end_column: u8,
     ) -> Result<(), DisplayError> {
-        if start_page > 7 || end_page > 7 || end_page < start_page {
+        let max_page = self.core.size.pages() - 1;
+        let max_col = self.core.size.width - 1;
+        if start_page > max_page || end_page > max_page || end_page < start_page {
             return Err(DisplayError::InvalidArgument);
         }
-        if start_column > 127 || end_column > 127 || end_column < start_column {
+        if start_column > max_col || end_column > max_col || end_column < start_column {
             return Err(DisplayError::InvalidArgument);
         }
         self.core.stop_scroll()?;
@@ -170,10 +183,12 @@ impl<DI: DisplayInterface> Ssd1306b<DI> {
         start_column: u8,
         end_column: u8,
     ) -> Result<(), DisplayError> {
-        if start_page > 7 || end_page > 7 || end_page < start_page {
+        let max_page = self.core.size.pages() - 1;
+        let max_col = self.core.size.width - 1;
+        if start_page > max_page || end_page > max_page || end_page < start_page {
             return Err(DisplayError::InvalidArgument);
         }
-        if start_column > 127 || end_column > 127 || end_column < start_column {
+        if start_column > max_col || end_column > max_col || end_column < start_column {
             return Err(DisplayError::InvalidArgument);
         }
         self.core.stop_scroll()?;
@@ -279,7 +294,7 @@ impl<DI: AsyncDisplayInterface> Ssd1306b<DI> {
 
 impl<DI> OriginDimensions for Ssd1306b<DI> {
     fn size(&self) -> Size {
-        Size::new(WIDTH as u32, HEIGHT as u32)
+        Size::new(self.core.size.width as u32, self.core.size.height as u32)
     }
 }
 
@@ -291,8 +306,10 @@ impl<DI> DrawTarget for Ssd1306b<DI> {
     where
         I: IntoIterator<Item = Pixel<Self::Color>>,
     {
+        let w = self.core.size.width as i32;
+        let h = self.core.size.height as i32;
         for Pixel(coord, color) in pixels {
-            if coord.x >= 0 && coord.x < WIDTH as i32 && coord.y >= 0 && coord.y < HEIGHT as i32 {
+            if coord.x >= 0 && coord.x < w && coord.y >= 0 && coord.y < h {
                 self.set_pixel(coord.x as u8, coord.y as u8, color.is_on());
             }
         }

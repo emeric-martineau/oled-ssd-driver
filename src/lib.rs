@@ -12,11 +12,15 @@ pub use command::{AddressingMode, ComPinConfig, ScrollDirection, ScrollInterval,
 pub use command_b::{ChargePumpVoltage, FadeMode, IrefSetting, ScrollIntervalB, VcomhLevelB};
 pub use display::Ssd1306;
 pub use display_b::Ssd1306b;
+pub use display_common::{DisplaySize, SIZE_128X32, SIZE_128X64, SIZE_64X48, SIZE_96X16};
 pub use error::DisplayError;
 pub use interface::{
     AsyncDisplayInterface, DisplayInterface, I2cInterface, SpiInterface, DEFAULT_I2C_ADDRESS,
 };
 
+/// Default display width (128 pixels)
 pub const WIDTH: u8 = 128;
+/// Default display height (64 pixels)
 pub const HEIGHT: u8 = 64;
+/// Default number of pages (8 for 64px height)
 pub const PAGES: u8 = HEIGHT / 8;
