@@ -1,12 +1,12 @@
 # oled-ssd-driver
 
-A platform-independent, `#![no_std]` Rust driver for **SSD1306**, **SSD1306B**, and **SSD1315** OLED display controllers.
+A platform-independent, `#![no_std]` Rust driver for **SSD1306**, **SSD1306B**, **SSD1312**, and **SSD1315** OLED display controllers.
 
 Works on any embedded target (ESP32, STM32, nRF, RP2040, etc.) with zero heap allocation.
 
 ## Features
 
-- **Triple controller support** -- `Ssd1306`, `Ssd1306b`, and `Ssd1315` structs with separate, optimized init sequences
+- **Quad controller support** -- `Ssd1306`, `Ssd1306b`, `Ssd1312`, and `Ssd1315` structs with separate, optimized init sequences
 - **I2C and SPI** -- Generic over `embedded-hal 1.0` bus traits
 - **Sync and async** -- Full async API via `embedded-hal-async`
 - **embedded-graphics integration** -- Implements `DrawTarget` for the [embedded-graphics](https://github.com/embedded-graphics/embedded-graphics) ecosystem
@@ -19,6 +19,7 @@ Works on any embedded target (ESP32, STM32, nRF, RP2040, etc.) with zero heap al
 |------------|--------|----------------|
 | SSD1306 | `Ssd1306<DI>` | Standard charge pump (on/off), 3 VCOMH levels, basic horizontal scroll |
 | SSD1306B | `Ssd1306b<DI>` | 4 charge pump voltages (6.0-9.0V), internal IREF, 4 VCOMH levels, fade/blink, zoom, content scroll, column-bounded scrolling |
+| SSD1312 | `Ssd1312<DI>` | 4 charge pump voltages (7.5-10.0V), internal/external IREF, 4 VCOMH levels, content scroll, column-bounded scrolling |
 | SSD1315 | `Ssd1315<DI>` | 3 charge pump voltages (7.5-9.0V), internal IREF, 4 VCOMH levels, fade/blink, zoom, content scroll, column-bounded scrolling |
 
 ## Quick Start
@@ -65,6 +66,25 @@ display.clear_buffer();
 
 // SSD1306B-specific: select charge pump voltage
 display.set_charge_pump_voltage(ChargePumpVoltage::V8_5).unwrap();
+
+// ... draw with embedded-graphics ...
+
+display.flush().unwrap();
+```
+
+### SSD1312 over I2C
+
+```rust
+use oled_ssd_driver::{I2cInterface, Ssd1312, ChargePumpVoltage1312, DEFAULT_I2C_ADDRESS};
+
+let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
+let mut display = Ssd1312::new(interface);
+
+display.init().unwrap();
+display.clear_buffer();
+
+// SSD1312-specific: select charge pump voltage (7.5V, 8.5V, 9.0V, or 10.0V)
+display.set_charge_pump_voltage(ChargePumpVoltage1312::V8_5).unwrap();
 
 // ... draw with embedded-graphics ...
 
@@ -146,6 +166,38 @@ display.start_content_scroll(
 display.stop_scroll().unwrap();
 ```
 
+## SSD1312-Specific API
+
+The `Ssd1312` driver exposes additional hardware features:
+
+```rust
+use oled_ssd_driver::{Ssd1312, ChargePumpVoltage1312, IrefSetting1312,
+    VcomhLevel1312, ScrollDirection, ScrollInterval1312};
+
+// Charge pump voltage (7.5V, 8.5V, 9.0V, 10.0V)
+display.set_charge_pump_voltage(ChargePumpVoltage1312::V10_0).unwrap();
+
+// IREF selection (internal or external)
+display.set_iref(IrefSetting1312::Internal).unwrap();
+
+// VCOMH deselect level (4 options: 0.65, 0.71, 0.77, 0.83 x VCC)
+display.set_vcomh_deselect(VcomhLevel1312::V083).unwrap();
+
+// Horizontal scroll with column bounds
+display.start_horizontal_scroll(
+    ScrollDirection::Right, 0, 7,
+    ScrollInterval1312::Frames6, 0, 127
+).unwrap();
+
+// Content scroll
+display.start_content_scroll(
+    ScrollDirection::Left, 0, 7,
+    ScrollInterval1312::Frames32, 10, 100
+).unwrap();
+
+display.stop_scroll().unwrap();
+```
+
 ## SSD1315-Specific API
 
 The `Ssd1315` driver exposes additional hardware features:
@@ -218,10 +270,12 @@ examples/
     esp32-wroom-32/
         ssd1306/       # ESP32 + SSD1306 over I2C
         ssd1306b/      # ESP32 + SSD1306B over I2C
+        ssd1312/       # ESP32 + SSD1312 over I2C
         ssd1315/       # ESP32 + SSD1315 over I2C
     stm32-f1/
         ssd1306/       # STM32F103 "Blue Pill" + SSD1306 over I2C
         ssd1306b/      # STM32F103 "Blue Pill" + SSD1306B over I2C
+        ssd1312/       # STM32F103 "Blue Pill" + SSD1312 over I2C
         ssd1315/       # STM32F103 "Blue Pill" + SSD1315 over I2C
 ```
 
