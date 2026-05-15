@@ -7,6 +7,7 @@ mod command_1315;
 mod command_ch1116;
 mod display_1306;
 mod display_1306b;
+mod display_1307;
 mod display_1312;
 mod display_1315;
 mod display_ch1116;
@@ -28,11 +29,13 @@ pub use command_ch1116::{
 };
 pub use display_1306::Ssd1306;
 pub use display_1306b::Ssd1306b;
+pub use display_1307::Ssd1307;
 pub use display_1312::Ssd1312;
 pub use display_1315::Ssd1315;
 pub use display_ch1116::Ch1116;
 pub use display_common::{
-    DisplaySize, InitConfig, SIZE_128X32, SIZE_128X64, SIZE_132X64, SIZE_64X48, SIZE_96X16,
+    DisplaySize, InitConfig, SIZE_128X32, SIZE_128X39, SIZE_128X64, SIZE_132X64, SIZE_64X48,
+    SIZE_96X16,
 };
 pub use error::DisplayError;
 pub use interface::{

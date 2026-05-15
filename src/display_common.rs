@@ -19,7 +19,7 @@ impl DisplaySize {
     }
 
     pub(crate) const fn pages(&self) -> u8 {
-        self.height / 8
+        self.height.div_ceil(8)
     }
 }
 
@@ -27,6 +27,8 @@ impl DisplaySize {
 pub const SIZE_132X64: DisplaySize = DisplaySize::new(132, 64);
 /// 128x64 (default)
 pub const SIZE_128X64: DisplaySize = DisplaySize::new(128, 64);
+/// 128x39 (SSD1307 default)
+pub const SIZE_128X39: DisplaySize = DisplaySize::new(128, 39);
 /// 128x32
 pub const SIZE_128X32: DisplaySize = DisplaySize::new(128, 32);
 /// 96x16
