@@ -2,12 +2,14 @@
 
 mod command_1306;
 mod command_1306b;
+mod command_1309;
 mod command_1312;
 mod command_1315;
 mod command_ch1116;
 mod display_1306;
 mod display_1306b;
 mod display_1307;
+mod display_1309;
 mod display_1312;
 mod display_1315;
 mod display_ch1116;
@@ -17,6 +19,7 @@ pub mod interface;
 
 pub use command_1306::{AddressingMode, ComPinConfig, ScrollDirection, ScrollInterval, VcomhLevel};
 pub use command_1306b::{ChargePumpVoltage, FadeMode, IrefSetting, ScrollIntervalB, VcomhLevelB};
+pub use command_1309::VcomhLevel1309;
 pub use command_1312::{
     ChargePumpVoltage1312, IrefSetting1312, ScrollInterval1312, VcomhLevel1312,
 };
@@ -30,6 +33,7 @@ pub use command_ch1116::{
 pub use display_1306::Ssd1306;
 pub use display_1306b::Ssd1306b;
 pub use display_1307::Ssd1307;
+pub use display_1309::Ssd1309;
 pub use display_1312::Ssd1312;
 pub use display_1315::Ssd1315;
 pub use display_ch1116::Ch1116;
