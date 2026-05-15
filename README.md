@@ -1,17 +1,17 @@
 # oled-ssd-driver
 
-A platform-independent, `#![no_std]` Rust driver for **SSD1306**, **SSD1306B**, **SSD1307**, **SSD1309**, **SSD1312**, **SSD1315**, and **CH1116** OLED display controllers.
+A platform-independent, `#![no_std]` Rust driver for **SSD1306**, **SSD1306B**, **SSD1307**, **SSD1309**, **SSD1312**, **SSD1315**, **SSD1320**, and **CH1116** OLED display controllers.
 
 Works on any embedded target (ESP32, STM32, nRF, RP2040, etc.) with zero heap allocation.
 
 ## Features
 
-- **Seven controller support** -- `Ssd1306`, `Ssd1306b`, `Ssd1307`, `Ssd1309`, `Ssd1312`, `Ssd1315`, and `Ch1116` structs with separate, optimized init sequences
+- **Eight controller support** -- `Ssd1306`, `Ssd1306b`, `Ssd1307`, `Ssd1309`, `Ssd1312`, `Ssd1315`, `Ssd1320`, and `Ch1116` structs with separate, optimized init sequences
 - **I2C and SPI** -- Generic over `embedded-hal 1.0` bus traits
 - **Sync and async** -- Full async API via `embedded-hal-async`
 - **embedded-graphics integration** -- Implements `DrawTarget` for the [embedded-graphics](https://github.com/embedded-graphics/embedded-graphics) ecosystem
 - **No lifetimes on the driver struct** -- Simple ownership model, easy to store in global statics
-- **Internal framebuffer** -- Up to 132x64 monochrome (1056 bytes for CH1116, 1024 bytes for 128x64), flushed on demand
+- **Internal framebuffer** -- Monochrome (up to 132x64 / 1056 bytes) or 4-bit grayscale (160x160 / 12800 bytes for SSD1320), flushed on demand
 
 ## Supported Controllers
 
@@ -23,7 +23,7 @@ Works on any embedded target (ESP32, STM32, nRF, RP2040, etc.) with zero heap al
 | SSD1309    | `Ssd1309<DI>`   | ❌     | 128x64 resolution, no charge pump (external VCC 7-18V), 3 VCOMH levels (0.64/0.78/0.84 x VCC), horizontal scroll |
 | SSD1312    | `Ssd1312<DI>`   | ✅ I2C | 4 charge pump voltages (7.5-10.0V), internal/external IREF, 4 VCOMH levels, content scroll, column-bounded scrolling |
 | SSD1315    | `Ssd1315<DI>`   | ✅ I2C | 3 charge pump voltages (7.5-9.0V), internal IREF, 4 VCOMH levels, fade/blink, zoom, content scroll, column-bounded scrolling |
-| SSD1320    | _TODO_          | ...    | ... |
+| SSD1320    | `Ssd1320<DI>`   | ❌     | 160x160 resolution, 4-bit grayscale (16 levels), no charge pump (external VCC 8-18V), internal/external IREF, standalone init config (`InitConfig1320`) |
 | SSD1325    | _TODO_          | ...    | ... |
 | SSD1327    | _TODO_          | ...    | ... |
 | SSD1331    | _TODO_          | ...    | ... |
@@ -172,6 +172,28 @@ display.set_pump_voltage(PumpVoltageCh1116::V9_0).unwrap();
 display.flush().unwrap();
 ```
 
+### SSD1320 over I2C (Grayscale)
+
+```rust
+use oled_ssd_driver::{I2cInterface, Ssd1320, DEFAULT_I2C_ADDRESS};
+use embedded_graphics::{prelude::*, pixelcolor::Gray4, text::Text,
+    mono_font::{ascii::FONT_6X10, MonoTextStyle}};
+
+let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
+let mut display = Ssd1320::new(interface);
+
+display.init(&Default::default()).unwrap();
+display.clear_buffer();
+
+// SSD1320 uses Gray4 (4-bit grayscale, 16 levels: 0x00-0x0F)
+let style = MonoTextStyle::new(&FONT_6X10, Gray4::new(0x0F));
+Text::new("Hello!", Point::new(0, 10), style)
+    .draw(&mut display)
+    .unwrap();
+
+display.flush().unwrap();
+```
+
 ### SPI Interface
 
 ```rust
@@ -209,6 +231,8 @@ All drivers accept an `InitConfig` struct in their `init()` method to configure 
 | `deactivate_scroll` | `bool` | `true` | Deactivate scroll during init | Applied | Applied |
 
 The `Option<T>` fields (`addressing_mode`, `vcomh_deselect`) are skipped when `None`, which handles device-specific incompatibility. CH1116 ignores these two fields entirely since it uses page-mode addressing only and has its own raw VCOM API.
+
+**Note:** `Ssd1320` uses its own `InitConfig1320` struct (not `InitConfig`) because it is a grayscale controller with fundamentally different register layout and commands.
 
 ## SSD1306B-Specific API
 
@@ -318,6 +342,35 @@ display.start_content_scroll(
 display.stop_scroll().unwrap();
 ```
 
+## SSD1320-Specific API
+
+The `Ssd1320` driver uses a standalone configuration (`InitConfig1320`) and `Gray4` pixel color:
+
+```rust
+use oled_ssd_driver::{Ssd1320, IrefSetting1320, InitConfig1320};
+
+// Custom init config
+let config = InitConfig1320 {
+    contrast: 0x7F,
+    display_on: true,
+    inverse_display: false,
+    ..Default::default()
+};
+display.init(&config).unwrap();
+
+// Internal/external current reference
+display.set_iref(IrefSetting1320::Internal).unwrap();
+
+// Set contrast (0-255)
+display.set_contrast(0xCF).unwrap();
+
+// Inverse display
+display.set_inverse(true).unwrap();
+
+// Display on/off
+display.display_on(false).unwrap();
+```
+
 ## CH1116-Specific API
 
 The `Ch1116` driver exposes additional hardware features:
@@ -392,6 +445,7 @@ examples/
         ssd1309/       # ESP32 + SSD1309 over I2C
         ssd1312/       # ESP32 + SSD1312 over I2C
         ssd1315/       # ESP32 + SSD1315 over I2C
+        ssd1320/       # ESP32 + SSD1320 over I2C (grayscale)
         ch1116/        # ESP32 + CH1116 over I2C
     stm32-f1/
         ssd1306/       # STM32F103 "Blue Pill" + SSD1306 over I2C
@@ -400,6 +454,7 @@ examples/
         ssd1309/       # STM32F103 "Blue Pill" + SSD1309 over I2C
         ssd1312/       # STM32F103 "Blue Pill" + SSD1312 over I2C
         ssd1315/       # STM32F103 "Blue Pill" + SSD1315 over I2C
+        ssd1320/       # STM32F103 "Blue Pill" + SSD1320 over I2C (grayscale)
         ch1116/        # STM32F103 "Blue Pill" + CH1116 over I2C
 ```
 
