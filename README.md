@@ -15,13 +15,13 @@ Works on any embedded target (ESP32, STM32, nRF, RP2040, etc.) with zero heap al
 
 ## Supported Controllers
 
-| Controller | Struct | Key Differences |
-|------------|--------|----------------|
-| SSD1306 | `Ssd1306<DI>` | Standard charge pump (on/off), 3 VCOMH levels, basic horizontal scroll |
-| SSD1306B | `Ssd1306b<DI>` | 4 charge pump voltages (6.0-9.0V), internal IREF, 4 VCOMH levels, fade/blink, zoom, content scroll, column-bounded scrolling |
-| SSD1312 | `Ssd1312<DI>` | 4 charge pump voltages (7.5-10.0V), internal/external IREF, 4 VCOMH levels, content scroll, column-bounded scrolling |
-| SSD1315 | `Ssd1315<DI>` | 3 charge pump voltages (7.5-9.0V), internal IREF, 4 VCOMH levels, fade/blink, zoom, content scroll, column-bounded scrolling |
-| CH1116 | `Ch1116<DI>` | 132x64 resolution, 4 pump voltages (6.4-10.0V), internal/external IREF with 4 resistor values, breathing light effect, horizontal scroll with column bounds, page-mode addressing |
+| Controller | Struct | Tested | Key Differences |
+|------------|--------|--------|-----------------|
+| SSD1306 | `Ssd1306<DI>` | ✅ I2C | Standard charge pump (on/off), 3 VCOMH levels, basic horizontal scroll |
+| SSD1306B | `Ssd1306b<DI>` | ✅ I2C | 4 charge pump voltages (6.0-9.0V), internal IREF, 4 VCOMH levels, fade/blink, zoom, content scroll, column-bounded scrolling |
+| SSD1312 | `Ssd1312<DI>` | ✅ I2C | 4 charge pump voltages (7.5-10.0V), internal/external IREF, 4 VCOMH levels, content scroll, column-bounded scrolling |
+| SSD1315 | `Ssd1315<DI>` | ✅ I2C | 3 charge pump voltages (7.5-9.0V), internal IREF, 4 VCOMH levels, fade/blink, zoom, content scroll, column-bounded scrolling |
+| CH1116 | `Ch1116<DI>` | ✅ I2C | 132x64 resolution, 4 pump voltages (6.4-10.0V), internal/external IREF with 4 resistor values, breathing light effect, horizontal scroll with column bounds, page-mode addressing |
 
 ## Quick Start
 
