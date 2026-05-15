@@ -1,4 +1,4 @@
-use crate::command::{AddressingMode, ComPinConfig, Command, VcomhLevel};
+use crate::command_1306::{AddressingMode, ComPinConfig, Command, VcomhLevel};
 use crate::error::DisplayError;
 use crate::interface::{AsyncDisplayInterface, DisplayInterface};
 

@@ -5,7 +5,7 @@ use embedded_graphics_core::{
     Pixel,
 };
 
-use crate::command::{Command, ScrollDirection};
+use crate::command_1306::{Command, ScrollDirection};
 use crate::command_1312::{
     ChargePumpVoltage1312, IrefSetting1312, ScrollInterval1312, VcomhLevel1312,
 };
