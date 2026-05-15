@@ -64,7 +64,7 @@ fn test_ch1116_set_pixel_out_of_bounds() {
 #[test]
 fn test_ch1116_init_sends_commands() {
     let mut display = Ch1116::new(MockInterface::new());
-    display.init().unwrap();
+    display.init(&Default::default()).unwrap();
 
     let iface = display.release();
     // Should contain display OFF
@@ -84,9 +84,16 @@ fn test_ch1116_init_sends_commands() {
 }
 
 #[test]
-fn test_ch1116_init_with_orientation_normal() {
+fn test_ch1116_init_with_custom_config() {
+    use oled_ssd_driver::InitConfig;
     let mut display = Ch1116::new(MockInterface::new());
-    display.init_with_orientation(false, false).unwrap();
+    let config = InitConfig {
+        segment_remap: false,
+        com_scan_reversed: false,
+        display_on: true,
+        ..Default::default()
+    };
+    display.init(&config).unwrap();
 
     let iface = display.release();
     // Segment normal (A0)
@@ -98,7 +105,7 @@ fn test_ch1116_init_with_orientation_normal() {
 #[test]
 fn test_ch1116_flush_sends_page_mode_data() {
     let mut display = Ch1116::new(MockInterface::new());
-    display.init().unwrap();
+    display.init(&Default::default()).unwrap();
     display.set_pixel(0, 0, true);
     display.flush().unwrap();
 

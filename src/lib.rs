@@ -32,7 +32,7 @@ pub use display_1315::Ssd1315;
 pub use display_b::Ssd1306b;
 pub use display_ch1116::Ch1116;
 pub use display_common::{
-    DisplaySize, SIZE_128X32, SIZE_128X64, SIZE_132X64, SIZE_64X48, SIZE_96X16,
+    DisplaySize, InitConfig, SIZE_128X32, SIZE_128X64, SIZE_132X64, SIZE_64X48, SIZE_96X16,
 };
 pub use error::DisplayError;
 pub use interface::{

@@ -78,7 +78,7 @@ fn test_128x32_draw_target_clips() {
 #[test]
 fn test_128x32_init_multiplex_ratio() {
     let mut display = Ssd1306::new_with_size(MockInterface::new(), SIZE_128X32);
-    display.init().unwrap();
+    display.init(&Default::default()).unwrap();
 
     let iface = display.release();
     // Multiplex ratio should be 31 (height - 1)
@@ -88,7 +88,7 @@ fn test_128x32_init_multiplex_ratio() {
 #[test]
 fn test_128x32_init_com_pin_sequential() {
     let mut display = Ssd1306::new_with_size(MockInterface::new(), SIZE_128X32);
-    display.init().unwrap();
+    display.init(&Default::default()).unwrap();
 
     let iface = display.release();
     // COM pin config for <=32 height: sequential (A[4]=0), no remap (A[5]=0) → 0x02
@@ -98,7 +98,7 @@ fn test_128x32_init_com_pin_sequential() {
 #[test]
 fn test_128x64_init_com_pin_alternative() {
     let mut display = Ssd1306::new_with_size(MockInterface::new(), SIZE_128X64);
-    display.init().unwrap();
+    display.init(&Default::default()).unwrap();
 
     let iface = display.release();
     // COM pin config for >32 height: alternative (A[4]=1), no remap (A[5]=0) → 0x12
@@ -108,7 +108,7 @@ fn test_128x64_init_com_pin_alternative() {
 #[test]
 fn test_128x32_flush_data_size() {
     let mut display = Ssd1306::new_with_size(MockInterface::new(), SIZE_128X32);
-    display.init().unwrap();
+    display.init(&Default::default()).unwrap();
     display.flush().unwrap();
 
     let iface = display.release();
@@ -136,7 +136,7 @@ fn test_ssd1306b_custom_size() {
     let mut display = Ssd1306b::new_with_size(MockInterface::new(), SIZE_128X32);
     assert_eq!(display.size(), Size::new(128, 32));
 
-    display.init().unwrap();
+    display.init(&Default::default()).unwrap();
     let iface = display.release();
     // Should have multiplex ratio 31
     assert!(iface.commands.iter().any(|c| c == &[0xA8, 31]));

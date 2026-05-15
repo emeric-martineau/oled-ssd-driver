@@ -18,7 +18,7 @@ use embedded_graphics::{
     text::Text,
 };
 use esp_hal::{i2c::master::I2c, main, time::Rate};
-use oled_ssd_driver::{ChargePumpVoltage1312, I2cInterface, Ssd1312, DEFAULT_I2C_ADDRESS};
+use oled_ssd_driver::{ChargePumpVoltage1312, I2cInterface, InitConfig, Ssd1312, DEFAULT_I2C_ADDRESS};
 
 #[panic_handler]
 fn panic(_panic_info: &core::panic::PanicInfo) -> ! {
@@ -39,7 +39,12 @@ fn main() -> ! {
     let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
     let mut display = Ssd1312::new(interface);
 
-    display.init().unwrap();
+    let config = InitConfig {
+        segment_remap: false,
+        com_scan_reversed: false,
+        ..Default::default()
+    };
+    display.init(&config).unwrap();
     display.clear_buffer();
 
     // SSD1312-specific: set charge pump to 8.5V for brighter output

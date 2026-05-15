@@ -39,7 +39,7 @@ fn main() -> ! {
     let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
     let mut display = Ssd1306::new(interface);
 
-    display.init().unwrap();
+    display.init(&Default::default()).unwrap();
     display.clear_buffer();
 
     // Draw text

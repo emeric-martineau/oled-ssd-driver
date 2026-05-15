@@ -9,7 +9,7 @@ use crate::command_ch1116::{
     BreathingBrightnessCh1116, IrefResistorCh1116, IrefSourceCh1116, PumpVoltageCh1116,
     ScrollDirectionCh1116, ScrollIntervalCh1116, ScrollModeCh1116,
 };
-use crate::display_common::{DisplayCore, DisplaySize, SIZE_132X64};
+use crate::display_common::{DisplayCore, DisplaySize, InitConfig, SIZE_132X64};
 use crate::error::DisplayError;
 use crate::interface::{AsyncDisplayInterface, DisplayInterface};
 
@@ -66,64 +66,67 @@ impl<DI: DisplayInterface> Ch1116<DI> {
     }
 
     /// CH1116 — Power ON initialization sequence.
-    /// Configures display OFF, multiplex 64, display offset 0, start line 0,
-    /// segment remap, COM scan reversed, COM pads alt, contrast 0x80,
-    /// DC-DC on, pre-charge, VCOM deselect, pump voltage 7.4V, display ON.
-    pub fn init(&mut self) -> Result<(), DisplayError> {
-        self.init_with_orientation(true, true)
-    }
-
-    /// CH1116 — Power ON initialization with explicit orientation control.
-    /// `segment_remap`: true = reverse (ADC=1, column 131→SEG0), false = normal (ADC=0, column 0→SEG0).
-    /// `com_scan_reversed`: true = scan COM[N-1] to COM0, false = scan COM0 to COM[N-1].
-    pub fn init_with_orientation(
-        &mut self,
-        segment_remap: bool,
-        com_scan_reversed: bool,
-    ) -> Result<(), DisplayError> {
+    /// Configures display OFF, multiplex 64, display offset, start line,
+    /// segment remap, COM scan direction, COM pads alt, contrast,
+    /// DC-DC on, pre-charge, VCOM deselect, pump voltage 7.4V, then optionally display ON.
+    ///
+    /// Note: `addressing_mode` and `vcomh_deselect` from `InitConfig` are ignored —
+    /// CH1116 only supports page-mode addressing and uses a raw u8 VCOM level.
+    pub fn init(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
         // CH1116 §17 — Display OFF
         self.send_raw_command(&[0xAE])?;
         // CH1116 §21 — Set display clock divide ratio/oscillator frequency
-        // POR: divide ratio 8, osc_freq = fOSC (0x50 = divide 8, freq default)
         self.send_raw_command(&[0xD5, 0x50])?;
         // CH1116 §15 — Set multiplex ratio to 64 (N-1 = 63 = 0x3F)
         self.send_raw_command(&[0xA8, 0x3F])?;
-        // CH1116 §20 — Set display offset to 0
-        self.send_raw_command(&[0xD3, 0x00])?;
-        // CH1116 §9 — Set display start line to 0
-        self.send_raw_command(&[0x40])?;
+        // CH1116 §20 — Set display offset
+        self.send_raw_command(&[0xD3, config.display_offset & 0x3F])?;
+        // CH1116 §9 — Set display start line
+        self.send_raw_command(&[0x40 | (config.display_start_line & 0x3F)])?;
         // CH1116 §16 — Set DC-DC ON (ADH + 8BH)
         self.send_raw_command(&[0xAD, 0x8B])?;
         // CH1116 §12 — Set segment re-map (A0=normal, A1=reverse)
-        if segment_remap {
+        if config.segment_remap {
             self.send_raw_command(&[0xA1])?;
         } else {
             self.send_raw_command(&[0xA0])?;
         }
         // CH1116 §19 — Set COM output scan direction (C0=normal, C8=reversed)
-        if com_scan_reversed {
+        if config.com_scan_reversed {
             self.send_raw_command(&[0xC8])?;
         } else {
             self.send_raw_command(&[0xC0])?;
         }
         // CH1116 §24 — Set COM pads hardware configuration (alternative)
         self.send_raw_command(&[0xDA, 0x12])?;
-        // CH1116 §10 — Set contrast to 0x80 (POR)
-        self.send_raw_command(&[0x81, 0x80])?;
+        // CH1116 §10 — Set contrast
+        self.send_raw_command(&[0x81, config.contrast])?;
         // CH1116 §23 — Set pre-charge period (phase1=6 DCLKs, phase2=6 DCLKs = 0x66)
         self.send_raw_command(&[0xD9, 0x66])?;
         // CH1116 §25 — Set VCOM deselect level (0x35 = 0.770 POR)
         self.send_raw_command(&[0xDB, 0x35])?;
         // CH1116 §8 — Set pump voltage to 7.4V (POR)
         self.send_raw_command(&[PumpVoltageCh1116::V7_4 as u8])?;
-        // CH1116 §13 — Set entire display OFF (normal)
-        self.send_raw_command(&[0xA4])?;
-        // CH1116 §14 — Set normal display (not inverse)
-        self.send_raw_command(&[0xA6])?;
+        // CH1116 §13 — Set entire display ON/OFF
+        if config.entire_display_on {
+            self.send_raw_command(&[0xA5])?;
+        } else {
+            self.send_raw_command(&[0xA4])?;
+        }
+        // CH1116 §14 — Set normal/inverse display
+        if config.inverse_display {
+            self.send_raw_command(&[0xA7])?;
+        } else {
+            self.send_raw_command(&[0xA6])?;
+        }
         // CH1116 §7 — Deactivate scroll
-        self.send_raw_command(&[0x2E])?;
-        // CH1116 §17 — Display ON
-        self.send_raw_command(&[0xAF])?;
+        if config.deactivate_scroll {
+            self.send_raw_command(&[0x2E])?;
+        }
+        if config.display_on {
+            // CH1116 §17 — Display ON
+            self.send_raw_command(&[0xAF])?;
+        }
         Ok(())
     }
 
@@ -296,42 +299,51 @@ impl<DI: AsyncDisplayInterface> Ch1116<DI> {
     }
 
     /// CH1116 — Async power ON initialization sequence.
-    pub async fn init_async(&mut self) -> Result<(), DisplayError> {
-        self.init_with_orientation_async(true, true).await
-    }
-
-    /// CH1116 — Async power ON initialization with explicit orientation control.
-    pub async fn init_with_orientation_async(
-        &mut self,
-        segment_remap: bool,
-        com_scan_reversed: bool,
-    ) -> Result<(), DisplayError> {
+    ///
+    /// Note: `addressing_mode` and `vcomh_deselect` from `InitConfig` are ignored —
+    /// CH1116 only supports page-mode addressing and uses a raw u8 VCOM level.
+    pub async fn init_async(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
         self.send_raw_command_async(&[0xAE]).await?;
         self.send_raw_command_async(&[0xD5, 0x50]).await?;
         self.send_raw_command_async(&[0xA8, 0x3F]).await?;
-        self.send_raw_command_async(&[0xD3, 0x00]).await?;
-        self.send_raw_command_async(&[0x40]).await?;
+        self.send_raw_command_async(&[0xD3, config.display_offset & 0x3F])
+            .await?;
+        self.send_raw_command_async(&[0x40 | (config.display_start_line & 0x3F)])
+            .await?;
         self.send_raw_command_async(&[0xAD, 0x8B]).await?;
-        if segment_remap {
+        if config.segment_remap {
             self.send_raw_command_async(&[0xA1]).await?;
         } else {
             self.send_raw_command_async(&[0xA0]).await?;
         }
-        if com_scan_reversed {
+        if config.com_scan_reversed {
             self.send_raw_command_async(&[0xC8]).await?;
         } else {
             self.send_raw_command_async(&[0xC0]).await?;
         }
         self.send_raw_command_async(&[0xDA, 0x12]).await?;
-        self.send_raw_command_async(&[0x81, 0x80]).await?;
+        self.send_raw_command_async(&[0x81, config.contrast])
+            .await?;
         self.send_raw_command_async(&[0xD9, 0x66]).await?;
         self.send_raw_command_async(&[0xDB, 0x35]).await?;
         self.send_raw_command_async(&[PumpVoltageCh1116::V7_4 as u8])
             .await?;
-        self.send_raw_command_async(&[0xA4]).await?;
-        self.send_raw_command_async(&[0xA6]).await?;
-        self.send_raw_command_async(&[0x2E]).await?;
-        self.send_raw_command_async(&[0xAF]).await?;
+        if config.entire_display_on {
+            self.send_raw_command_async(&[0xA5]).await?;
+        } else {
+            self.send_raw_command_async(&[0xA4]).await?;
+        }
+        if config.inverse_display {
+            self.send_raw_command_async(&[0xA7]).await?;
+        } else {
+            self.send_raw_command_async(&[0xA6]).await?;
+        }
+        if config.deactivate_scroll {
+            self.send_raw_command_async(&[0x2E]).await?;
+        }
+        if config.display_on {
+            self.send_raw_command_async(&[0xAF]).await?;
+        }
         Ok(())
     }
 

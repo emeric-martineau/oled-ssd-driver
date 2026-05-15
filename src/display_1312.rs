@@ -9,7 +9,7 @@ use crate::command::{Command, ScrollDirection};
 use crate::command_1312::{
     ChargePumpVoltage1312, IrefSetting1312, ScrollInterval1312, VcomhLevel1312,
 };
-use crate::display_common::{DisplayCore, DisplaySize, SIZE_128X64};
+use crate::display_common::{DisplayCore, DisplaySize, InitConfig, SIZE_128X64};
 use crate::error::DisplayError;
 use crate::interface::{AsyncDisplayInterface, DisplayInterface};
 
@@ -71,27 +71,16 @@ impl<DI: DisplayInterface> Ssd1312<DI> {
 
     /// SSD1312 §6.9.2 — Power ON initialization sequence with charge pump.
     /// Configures the display for the configured size, horizontal addressing, charge pump 7.5V, internal IREF.
-    pub fn init(&mut self) -> Result<(), DisplayError> {
-        self.init_with_orientation(false, false)
-    }
-
-    /// SSD1312 §6.9.2 — Power ON initialization with explicit orientation control.
-    /// `segment_remap`: true = column 127 mapped to SEG0, false = column 0 mapped to SEG0.
-    /// `com_scan_reversed`: true = scan from COM[N-1] to COM0, false = scan from COM0 to COM[N-1].
-    pub fn init_with_orientation(
-        &mut self,
-        segment_remap: bool,
-        com_scan_reversed: bool,
-    ) -> Result<(), DisplayError> {
-        self.core.init_common()?;
-        self.send_command(Command::SetSegmentRemap(segment_remap))?;
-        self.send_command(Command::SetComScanDirection(com_scan_reversed))?;
+    /// Note: SSD1312 default orientation is segment_remap=false, com_scan_reversed=false.
+    pub fn init(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
+        self.core.init_common(config)?;
         // SSD1312 §6.8 — Enable internal IREF (A[4]=1)
         self.send_raw_command(&[0xAD, 0x10])?;
         // SSD1312 §6.10 — Charge pump 7.5V (RESET)
         self.send_raw_command(&[0x8D, ChargePumpVoltage1312::V7_5 as u8])?;
-        // SSD1312 §6.9 — Display ON
-        self.send_command(Command::DisplayOn(true))?;
+        if config.display_on {
+            self.send_command(Command::DisplayOn(true))?;
+        }
         Ok(())
     }
 
@@ -222,29 +211,16 @@ impl<DI: AsyncDisplayInterface> Ssd1312<DI> {
     }
 
     /// SSD1312 §6.9.2 — Async power ON initialization sequence.
-    pub async fn init_async(&mut self) -> Result<(), DisplayError> {
-        self.init_with_orientation_async(false, false).await
-    }
-
-    /// SSD1312 §6.9.2 — Async power ON initialization with explicit orientation control.
-    pub async fn init_with_orientation_async(
-        &mut self,
-        segment_remap: bool,
-        com_scan_reversed: bool,
-    ) -> Result<(), DisplayError> {
-        self.core.init_common_async().await?;
-        self.core
-            .send_command_async(Command::SetSegmentRemap(segment_remap))
-            .await?;
-        self.core
-            .send_command_async(Command::SetComScanDirection(com_scan_reversed))
-            .await?;
+    pub async fn init_async(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
+        self.core.init_common_async(config).await?;
         self.send_raw_command_async(&[0xAD, 0x10]).await?;
         self.send_raw_command_async(&[0x8D, ChargePumpVoltage1312::V7_5 as u8])
             .await?;
-        self.core
-            .send_command_async(Command::DisplayOn(true))
-            .await?;
+        if config.display_on {
+            self.core
+                .send_command_async(Command::DisplayOn(true))
+                .await?;
+        }
         Ok(())
     }
 

@@ -55,7 +55,7 @@ fn test_b_set_pixel() {
 #[test]
 fn test_b_init_sends_iref_and_charge_pump() {
     let mut display = Ssd1306b::new(MockInterface::new());
-    display.init().unwrap();
+    display.init(&Default::default()).unwrap();
 
     let iface = display.release();
     // Should contain IREF setting (ADh, 10h)
@@ -70,7 +70,7 @@ fn test_b_init_sends_iref_and_charge_pump() {
 #[test]
 fn test_b_flush_sends_data() {
     let mut display = Ssd1306b::new(MockInterface::new());
-    display.init().unwrap();
+    display.init(&Default::default()).unwrap();
     display.set_pixel(0, 0, true);
     display.flush().unwrap();
 

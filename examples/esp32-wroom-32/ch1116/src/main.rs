@@ -39,7 +39,7 @@ fn main() -> ! {
     let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
     let mut display = Ch1116::new(interface);
 
-    display.init().unwrap();
+    display.init(&Default::default()).unwrap();
     display.clear_buffer();
 
     // CH1116-specific: set pump voltage to 9.0V for brighter output

@@ -43,7 +43,7 @@ use embedded_graphics::{prelude::*, pixelcolor::BinaryColor, text::Text,
 let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
 let mut display = Ssd1306::new(interface);
 
-display.init().unwrap();
+display.init(&Default::default()).unwrap();
 display.clear_buffer();
 
 let style = MonoTextStyle::new(&FONT_6X10, BinaryColor::On);
@@ -62,7 +62,7 @@ use oled_ssd_driver::{I2cInterface, Ssd1306b, ChargePumpVoltage, DEFAULT_I2C_ADD
 let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
 let mut display = Ssd1306b::new(interface);
 
-display.init().unwrap();
+display.init(&Default::default()).unwrap();
 display.clear_buffer();
 
 // SSD1306B-specific: select charge pump voltage
@@ -81,7 +81,7 @@ use oled_ssd_driver::{I2cInterface, Ssd1312, ChargePumpVoltage1312, DEFAULT_I2C_
 let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
 let mut display = Ssd1312::new(interface);
 
-display.init().unwrap();
+display.init(&Default::default()).unwrap();
 display.clear_buffer();
 
 // SSD1312-specific: select charge pump voltage (7.5V, 8.5V, 9.0V, or 10.0V)
@@ -100,7 +100,7 @@ use oled_ssd_driver::{I2cInterface, Ssd1315, ChargePumpVoltage1315, DEFAULT_I2C_
 let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
 let mut display = Ssd1315::new(interface);
 
-display.init().unwrap();
+display.init(&Default::default()).unwrap();
 display.clear_buffer();
 
 // SSD1315-specific: select charge pump voltage (7.5V, 8.5V, or 9.0V)
@@ -119,7 +119,7 @@ use oled_ssd_driver::{I2cInterface, Ch1116, PumpVoltageCh1116, DEFAULT_I2C_ADDRE
 let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
 let mut display = Ch1116::new(interface);
 
-display.init().unwrap();
+display.init(&Default::default()).unwrap();
 display.clear_buffer();
 
 // CH1116-specific: select pump voltage (6.4V, 7.4V, 9.0V, or 10.0V)
@@ -137,16 +137,36 @@ use oled_ssd_driver::{SpiInterface, Ssd1306};
 
 let interface = SpiInterface::new(spi_device, dc_pin);
 let mut display = Ssd1306::new(interface);
-display.init().unwrap();
+display.init(&Default::default()).unwrap();
 ```
 
 ### Async Usage
 
 ```rust
 let mut display = Ssd1306::new(interface);
-display.init_async().await.unwrap();
+display.init_async(&Default::default()).await.unwrap();
 display.flush_async().await.unwrap();
 ```
+
+## InitConfig
+
+All drivers accept an `InitConfig` struct in their `init()` method to configure the display at startup:
+
+| Field | Type | Default | Description | SSD13xx | CH1116 |
+|-------|------|---------|-------------|---------|--------|
+| `segment_remap` | `bool` | `true` | Column address mapped in reverse direction to SEG pins | Applied | Applied |
+| `com_scan_reversed` | `bool` | `true` | COM scan from COM[N-1] to COM0 (vertically flipped) | Applied | Applied |
+| `display_on` | `bool` | `true` | Turn the display on at the end of initialization | Applied | Applied |
+| `display_offset` | `u8` | `0` | Vertical shift (0-63) | Applied | Applied |
+| `display_start_line` | `u8` | `0` | Display start line (0-63) | Applied | Applied |
+| `addressing_mode` | `Option<AddressingMode>` | `Some(Horizontal)` | Memory addressing mode | Applied if `Some` | Ignored (page-mode only) |
+| `contrast` | `u8` | `0x7F` | Contrast level (0-255) | Applied | Applied |
+| `vcomh_deselect` | `Option<VcomhLevel>` | `Some(V077)` | VCOMH deselect level | Applied if `Some` | Ignored (uses raw u8 API) |
+| `entire_display_on` | `bool` | `false` | All pixels lit regardless of RAM content | Applied | Applied |
+| `inverse_display` | `bool` | `false` | Swap ON/OFF pixels | Applied | Applied |
+| `deactivate_scroll` | `bool` | `true` | Deactivate scroll during init | Applied | Applied |
+
+The `Option<T>` fields (`addressing_mode`, `vcomh_deselect`) are skipped when `None`, which handles device-specific incompatibility. CH1116 ignores these two fields entirely since it uses page-mode addressing only and has its own raw VCOM API.
 
 ## SSD1306B-Specific API
 

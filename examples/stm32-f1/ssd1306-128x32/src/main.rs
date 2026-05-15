@@ -58,7 +58,7 @@ fn main() -> ! {
     let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
     let mut display = Ssd1306::new_with_size(interface, SIZE_128X32);
 
-    display.init().unwrap();
+    display.init(&Default::default()).unwrap();
     display.clear_buffer();
 
     // Draw text (fits in 32px height)

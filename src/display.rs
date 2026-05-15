@@ -6,7 +6,7 @@ use embedded_graphics_core::{
 };
 
 use crate::command::{Command, ScrollDirection, ScrollInterval};
-use crate::display_common::{DisplayCore, DisplaySize, SIZE_128X64};
+use crate::display_common::{DisplayCore, DisplaySize, InitConfig, SIZE_128X64};
 use crate::error::DisplayError;
 use crate::interface::{AsyncDisplayInterface, DisplayInterface};
 
@@ -64,10 +64,12 @@ impl<DI: DisplayInterface> Ssd1306<DI> {
     }
 
     /// SSD1306 §8.9 — Power ON initialization sequence.
-    pub fn init(&mut self) -> Result<(), DisplayError> {
-        self.core.init_common()?;
+    pub fn init(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
+        self.core.init_common(config)?;
         self.send_command(Command::SetChargePump(true))?;
-        self.send_command(Command::DisplayOn(true))?;
+        if config.display_on {
+            self.send_command(Command::DisplayOn(true))?;
+        }
         Ok(())
     }
 
@@ -130,14 +132,16 @@ impl<DI: DisplayInterface> Ssd1306<DI> {
 
 impl<DI: AsyncDisplayInterface> Ssd1306<DI> {
     /// SSD1306 §8.9 — Async power ON initialization sequence.
-    pub async fn init_async(&mut self) -> Result<(), DisplayError> {
-        self.core.init_common_async().await?;
+    pub async fn init_async(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
+        self.core.init_common_async(config).await?;
         self.core
             .send_command_async(Command::SetChargePump(true))
             .await?;
-        self.core
-            .send_command_async(Command::DisplayOn(true))
-            .await?;
+        if config.display_on {
+            self.core
+                .send_command_async(Command::DisplayOn(true))
+                .await?;
+        }
         Ok(())
     }
 

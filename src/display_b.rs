@@ -7,7 +7,7 @@ use embedded_graphics_core::{
 
 use crate::command::{Command, ScrollDirection};
 use crate::command_b::{ChargePumpVoltage, FadeMode, IrefSetting, ScrollIntervalB, VcomhLevelB};
-use crate::display_common::{DisplayCore, DisplaySize, SIZE_128X64};
+use crate::display_common::{DisplayCore, DisplaySize, InitConfig, SIZE_128X64};
 use crate::error::DisplayError;
 use crate::interface::{AsyncDisplayInterface, DisplayInterface};
 
@@ -69,14 +69,15 @@ impl<DI: DisplayInterface> Ssd1306b<DI> {
 
     /// SSD1306B §8 — Power ON initialization sequence.
     /// Configures the display for the configured size, horizontal addressing, charge pump 7.5V, internal IREF.
-    pub fn init(&mut self) -> Result<(), DisplayError> {
-        self.core.init_common()?;
+    pub fn init(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
+        self.core.init_common(config)?;
         // SSD1306B §8 — Enable internal IREF (A[4]=1, A[5]=0 → 19uA)
         self.send_raw_command(&[0xAD, 0x10])?;
         // SSD1306B §8 — Charge pump 7.5V (RESET)
         self.send_raw_command(&[0x8D, ChargePumpVoltage::V7_5 as u8])?;
-        // SSD1306B §8 — Display ON
-        self.send_command(Command::DisplayOn(true))?;
+        if config.display_on {
+            self.send_command(Command::DisplayOn(true))?;
+        }
         Ok(())
     }
 
@@ -222,14 +223,16 @@ impl<DI: AsyncDisplayInterface> Ssd1306b<DI> {
     }
 
     /// SSD1306B §8 — Async power ON initialization sequence.
-    pub async fn init_async(&mut self) -> Result<(), DisplayError> {
-        self.core.init_common_async().await?;
+    pub async fn init_async(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
+        self.core.init_common_async(config).await?;
         self.send_raw_command_async(&[0xAD, 0x10]).await?;
         self.send_raw_command_async(&[0x8D, ChargePumpVoltage::V7_5 as u8])
             .await?;
-        self.core
-            .send_command_async(Command::DisplayOn(true))
-            .await?;
+        if config.display_on {
+            self.core
+                .send_command_async(Command::DisplayOn(true))
+                .await?;
+        }
         Ok(())
     }
 

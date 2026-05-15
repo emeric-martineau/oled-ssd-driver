@@ -87,7 +87,7 @@ fn test_draw_target_pixel() {
 #[test]
 fn test_init_sends_commands() {
     let mut display = Ssd1306::new(MockInterface::new());
-    display.init().unwrap();
+    display.init(&Default::default()).unwrap();
 
     let iface = &display.release();
     // Init should have sent multiple commands and no data
@@ -98,7 +98,7 @@ fn test_init_sends_commands() {
 #[test]
 fn test_flush_sends_data() {
     let mut display = Ssd1306::new(MockInterface::new());
-    display.init().unwrap();
+    display.init(&Default::default()).unwrap();
     display.set_pixel(0, 0, true);
     display.flush().unwrap();
 
