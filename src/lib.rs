@@ -4,6 +4,7 @@ pub mod ch1116;
 mod common;
 mod error;
 pub mod interface;
+pub mod ssd1300;
 pub mod ssd1306;
 pub mod ssd1306b;
 pub mod ssd1307;
@@ -24,13 +25,14 @@ pub use ch1116::{
     ScrollModeCh1116,
 };
 pub use common::{
-    DisplaySize, InitConfig, SIZE_128X32, SIZE_128X39, SIZE_128X64, SIZE_132X64, SIZE_64X48,
-    SIZE_96X16,
+    DisplaySize, InitConfig, SIZE_104X48, SIZE_128X32, SIZE_128X39, SIZE_128X64, SIZE_132X64,
+    SIZE_64X48, SIZE_96X16,
 };
 pub use error::DisplayError;
 pub use interface::{
     AsyncDisplayInterface, DisplayInterface, I2cInterface, SpiInterface, DEFAULT_I2C_ADDRESS,
 };
+pub use ssd1300::{InitConfig as InitConfig1300, ScrollInterval1300, Ssd1300};
 pub use ssd1306::{
     AddressingMode, ComPinConfig, ScrollDirection, ScrollInterval, Ssd1306, VcomhLevel,
 };

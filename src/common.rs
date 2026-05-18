@@ -35,6 +35,8 @@ pub const SIZE_128X32: DisplaySize = DisplaySize::new(128, 32);
 pub const SIZE_96X16: DisplaySize = DisplaySize::new(96, 16);
 /// 64x48
 pub const SIZE_64X48: DisplaySize = DisplaySize::new(64, 48);
+/// 104x48 (SSD1300 default)
+pub const SIZE_104X48: DisplaySize = DisplaySize::new(104, 48);
 
 /// Configuration for display initialization.
 ///

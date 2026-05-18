@@ -1,22 +1,23 @@
 # oled-ssd-driver
 
-A platform-independent, `#![no_std]` Rust driver for **SSD1306**, **SSD1306B**, **SSD1307**, **SSD1309**, **SSD1312**, **SSD1315**, **SSD1320**, **SSD1325**, **SSD1327**, **SSD1331**, **SSD1332**, **SSD1351**, **SSD1362**, and **CH1116** OLED display controllers.
+A platform-independent, `#![no_std]` Rust driver for **SSD1300**, **SSD1306**, **SSD1306B**, **SSD1307**, **SSD1309**, **SSD1312**, **SSD1315**, **SSD1320**, **SSD1325**, **SSD1327**, **SSD1331**, **SSD1332**, **SSD1351**, **SSD1362**, and **CH1116** OLED display controllers.
 
 Works on any embedded target (ESP32, STM32, nRF, RP2040, etc.) with zero heap allocation.
 
 ## Features
 
-- **Fourteen controller support** -- `Ssd1306`, `Ssd1306b`, `Ssd1307`, `Ssd1309`, `Ssd1312`, `Ssd1315`, `Ssd1320`, `Ssd1325`, `Ssd1327`, `Ssd1331`, `Ssd1332`, `Ssd1351`, `Ssd1362`, and `Ch1116` structs with separate, optimized init sequences
+- **Fifteen controller support** -- `Ssd1300`, `Ssd1306`, `Ssd1306b`, `Ssd1307`, `Ssd1309`, `Ssd1312`, `Ssd1315`, `Ssd1320`, `Ssd1325`, `Ssd1327`, `Ssd1331`, `Ssd1332`, `Ssd1351`, `Ssd1362`, and `Ch1116` structs with separate, optimized init sequences
 - **I2C and SPI** -- Generic over `embedded-hal 1.0` bus traits
 - **Sync and async** -- Full async API via `embedded-hal-async`
 - **embedded-graphics integration** -- Implements `DrawTarget` for the [embedded-graphics](https://github.com/embedded-graphics/embedded-graphics) ecosystem
 - **No lifetimes on the driver struct** -- Simple ownership model, easy to store in global statics
-- **Internal framebuffer** -- Monochrome (up to 132x64 / 1056 bytes), 4-bit grayscale (128x80 / 5120 bytes for SSD1325, 128x128 / 8192 bytes for SSD1327, 160x160 / 12800 bytes for SSD1320, 256x64 / 8192 bytes for SSD1362), or 65K color RGB565 (96x64 / 12288 bytes for SSD1331/SSD1332, 128x128 / 32768 bytes for SSD1351), flushed on demand
+- **Internal framebuffer** -- Monochrome (up to 132x64 / 1056 bytes, or 104x48 / 624 bytes for SSD1300), 4-bit grayscale (128x80 / 5120 bytes for SSD1325, 128x128 / 8192 bytes for SSD1327, 160x160 / 12800 bytes for SSD1320, 256x64 / 8192 bytes for SSD1362), or 65K color RGB565 (96x64 / 12288 bytes for SSD1331/SSD1332, 128x128 / 32768 bytes for SSD1351), flushed on demand
 
 ## Supported Controllers
 
 | Controller | Struct          | Tested | Key Differences | Price of device |
 |------------|-----------------|--------|-----------------|-----------------|
+| SSD1300    | `Ssd1300<DI>`   | ❌     | 104x48 resolution, internal DC-DC booster, 4 area colour selections, page-mode addressing, horizontal scroll, SPI only (serial write-only), standalone `InitConfig` | N/A |
 | SSD1306    | `Ssd1306<DI>`   | ✅ I2C | Standard charge pump (on/off), 3 VCOMH levels, basic horizontal scroll | 2,11€ (2025/10/12) |
 | SSD1306B   | `Ssd1306b<DI>`  | ✅ I2C | 4 charge pump voltages (6.0-9.0V), internal IREF, 4 VCOMH levels, fade/blink, zoom, content scroll, column-bounded scrolling | N/A |
 | SSD1307    | `Ssd1307<DI>`   | ❌     | 128x39 resolution, no charge pump (external VCC 7-15V), external IREF, 3 VCOMH levels, horizontal scroll | N/A |
@@ -39,6 +40,28 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 oled-ssd-driver = "0.1"
+```
+
+### SSD1300 over SPI
+
+```rust
+use oled_ssd_driver::{SpiInterface, Ssd1300};
+use embedded_graphics::{prelude::*, pixelcolor::BinaryColor, text::Text,
+    mono_font::{ascii::FONT_6X10, MonoTextStyle}};
+
+let interface = SpiInterface::new(spi_device, dc_pin);
+let mut display = Ssd1300::new(interface);
+
+display.init(&Default::default()).unwrap();
+display.clear_buffer();
+
+// SSD1300: 104x48 monochrome, page-mode addressing, internal DC-DC booster
+let style = MonoTextStyle::new(&FONT_6X10, BinaryColor::On);
+Text::new("Hello!", Point::new(0, 10), style)
+    .draw(&mut display)
+    .unwrap();
+
+display.flush().unwrap();
 ```
 
 ### SSD1306 over I2C
@@ -365,7 +388,48 @@ All drivers accept an `InitConfig` struct in their `init()` method to configure 
 
 The `Option<T>` fields (`addressing_mode`, `vcomh_deselect`) are skipped when `None`, which handles device-specific incompatibility. CH1116 ignores these two fields entirely since it uses page-mode addressing only and has its own raw VCOM API.
 
-**Note:** `Ssd1320`, `Ssd1325`, `Ssd1327`, `Ssd1331`, `Ssd1332`, `Ssd1351`, and `Ssd1362` use their own `InitConfig` structs (in their respective modules, e.g. `ssd1320::InitConfig`) instead of the shared `InitConfig` because they are grayscale/color controllers with fundamentally different register layouts and commands. For convenience, the root re-exports them as `InitConfig1320`, `InitConfig1325`, `InitConfig1327`, `InitConfig1331`, `InitConfig1332`, `InitConfig1351`, and `InitConfig1362`.
+**Note:** `Ssd1300`, `Ssd1320`, `Ssd1325`, `Ssd1327`, `Ssd1331`, `Ssd1332`, `Ssd1351`, and `Ssd1362` use their own `InitConfig` structs (in their respective modules, e.g. `ssd1300::InitConfig`) instead of the shared `InitConfig` because they have fundamentally different register layouts and commands. For convenience, the root re-exports them as `InitConfig1300`, `InitConfig1320`, `InitConfig1325`, `InitConfig1327`, `InitConfig1331`, `InitConfig1332`, `InitConfig1351`, and `InitConfig1362`.
+
+## SSD1300-Specific API
+
+The `Ssd1300` driver uses a standalone configuration (`ssd1300::InitConfig`, re-exported as `InitConfig1300`) and `BinaryColor` pixel color:
+
+```rust
+use oled_ssd_driver::{Ssd1300, InitConfig1300, ScrollInterval1300};
+
+// Custom init config
+let config = InitConfig1300 {
+    contrast: 0x80,
+    segment_remap: true,
+    com_scan_reversed: true,
+    dc_dc_enable: true,
+    internal_vcomh: true,
+    display_on: true,
+    ..Default::default()
+};
+display.init(&config).unwrap();
+
+// Set contrast (0-255)
+display.set_contrast(0xCF).unwrap();
+
+// Set VCOMH deselect level (7-bit value, 0-127)
+display.set_vcomh(0x3F).unwrap();
+
+// Set DC-DC on/off and VCOMH source
+display.set_dc_dc(true, true).unwrap();
+
+// Horizontal scroll (start_page, end_page, num_columns_per_step, interval)
+display.start_horizontal_scroll(0, 5, 1, ScrollInterval1300::Frames64).unwrap();
+
+// Stop scrolling
+display.stop_scroll().unwrap();
+
+// Inverse display
+display.set_inverse(true).unwrap();
+
+// Display on/off
+display.display_on(false).unwrap();
+```
 
 ## SSD1306B-Specific API
 
@@ -822,6 +886,7 @@ Complete working examples for real hardware:
 ```
 examples/
     esp32-wroom-32/
+        ssd1300/       # ESP32 + SSD1300 over SPI (104x48 monochrome)
         ssd1306/       # ESP32 + SSD1306 over I2C
         ssd1306b/      # ESP32 + SSD1306B over I2C
         ssd1307/       # ESP32 + SSD1307 over I2C
