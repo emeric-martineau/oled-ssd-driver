@@ -1,57 +1,25 @@
 #![no_std]
 
-mod command_1306;
-mod command_1306b;
-mod command_1309;
-mod command_1312;
-mod command_1315;
-mod command_1320;
-mod command_1325;
-mod command_1327;
-mod command_ch1116;
-mod display_1306;
-mod display_1306b;
-mod display_1307;
-mod display_1309;
-mod display_1312;
-mod display_1315;
-mod display_1320;
-mod display_1325;
-mod display_1327;
-mod display_ch1116;
-mod display_common;
+pub mod ch1116;
+mod common;
 mod error;
 pub mod interface;
+pub mod ssd1306;
+pub mod ssd1306b;
+pub mod ssd1307;
+pub mod ssd1309;
+pub mod ssd1312;
+pub mod ssd1315;
+pub mod ssd1320;
+pub mod ssd1325;
+pub mod ssd1327;
 
-pub use command_1306::{AddressingMode, ComPinConfig, ScrollDirection, ScrollInterval, VcomhLevel};
-pub use command_1306b::{ChargePumpVoltage, FadeMode, IrefSetting, ScrollIntervalB, VcomhLevelB};
-pub use command_1309::VcomhLevel1309;
-pub use command_1312::{
-    ChargePumpVoltage1312, IrefSetting1312, ScrollInterval1312, VcomhLevel1312,
+pub use ch1116::{
+    BreathingBrightnessCh1116, Ch1116, ComScanDirectionCh1116, IrefResistorCh1116,
+    IrefSourceCh1116, PumpVoltageCh1116, ScrollDirectionCh1116, ScrollIntervalCh1116,
+    ScrollModeCh1116,
 };
-pub use command_1315::{
-    ChargePumpVoltage1315, FadeMode1315, IrefSetting1315, ScrollInterval1315, VcomhLevel1315,
-};
-pub use command_1320::{
-    AddressingMode1320, DisplaySize1320, InitConfig1320, IrefSetting1320, SIZE_160X160,
-};
-pub use command_1325::{CurrentRange1325, DisplaySize1325, InitConfig1325, SIZE_128X80};
-pub use command_1327::{DisplaySize1327, InitConfig1327, SIZE_128X128};
-pub use command_ch1116::{
-    BreathingBrightnessCh1116, ComScanDirectionCh1116, IrefResistorCh1116, IrefSourceCh1116,
-    PumpVoltageCh1116, ScrollDirectionCh1116, ScrollIntervalCh1116, ScrollModeCh1116,
-};
-pub use display_1306::Ssd1306;
-pub use display_1306b::Ssd1306b;
-pub use display_1307::Ssd1307;
-pub use display_1309::Ssd1309;
-pub use display_1312::Ssd1312;
-pub use display_1315::Ssd1315;
-pub use display_1320::Ssd1320;
-pub use display_1325::Ssd1325;
-pub use display_1327::Ssd1327;
-pub use display_ch1116::Ch1116;
-pub use display_common::{
+pub use common::{
     DisplaySize, InitConfig, SIZE_128X32, SIZE_128X39, SIZE_128X64, SIZE_132X64, SIZE_64X48,
     SIZE_96X16,
 };
@@ -59,6 +27,29 @@ pub use error::DisplayError;
 pub use interface::{
     AsyncDisplayInterface, DisplayInterface, I2cInterface, SpiInterface, DEFAULT_I2C_ADDRESS,
 };
+pub use ssd1306::{
+    AddressingMode, ComPinConfig, ScrollDirection, ScrollInterval, Ssd1306, VcomhLevel,
+};
+pub use ssd1306b::{
+    ChargePumpVoltage, FadeMode, IrefSetting, ScrollIntervalB, Ssd1306b, VcomhLevelB,
+};
+pub use ssd1307::Ssd1307;
+pub use ssd1309::{Ssd1309, VcomhLevel1309};
+pub use ssd1312::{
+    ChargePumpVoltage1312, IrefSetting1312, ScrollInterval1312, Ssd1312, VcomhLevel1312,
+};
+pub use ssd1315::{
+    ChargePumpVoltage1315, FadeMode1315, IrefSetting1315, ScrollInterval1315, Ssd1315,
+    VcomhLevel1315,
+};
+pub use ssd1320::{
+    AddressingMode1320, DisplaySize1320, InitConfig as InitConfig1320, IrefSetting1320, Ssd1320,
+    SIZE_160X160,
+};
+pub use ssd1325::{
+    CurrentRange1325, DisplaySize1325, InitConfig as InitConfig1325, Ssd1325, SIZE_128X80,
+};
+pub use ssd1327::{DisplaySize1327, InitConfig as InitConfig1327, Ssd1327, SIZE_128X128};
 
 /// Default display width (128 pixels)
 pub const WIDTH: u8 = 128;

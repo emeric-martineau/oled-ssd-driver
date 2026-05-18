@@ -15,21 +15,21 @@ Works on any embedded target (ESP32, STM32, nRF, RP2040, etc.) with zero heap al
 
 ## Supported Controllers
 
-| Controller | Struct          | Tested | Key Differences |
-|------------|-----------------|--------|-----------------|
-| SSD1306    | `Ssd1306<DI>`   | ✅ I2C | Standard charge pump (on/off), 3 VCOMH levels, basic horizontal scroll |
-| SSD1306B   | `Ssd1306b<DI>`  | ✅ I2C | 4 charge pump voltages (6.0-9.0V), internal IREF, 4 VCOMH levels, fade/blink, zoom, content scroll, column-bounded scrolling |
-| SSD1307    | `Ssd1307<DI>`   | ❌     | 128x39 resolution, no charge pump (external VCC 7-15V), external IREF, 3 VCOMH levels, horizontal scroll |
-| SSD1309    | `Ssd1309<DI>`   | ❌     | 128x64 resolution, no charge pump (external VCC 7-18V), 3 VCOMH levels (0.64/0.78/0.84 x VCC), horizontal scroll |
-| SSD1312    | `Ssd1312<DI>`   | ✅ I2C | 4 charge pump voltages (7.5-10.0V), internal/external IREF, 4 VCOMH levels, content scroll, column-bounded scrolling |
-| SSD1315    | `Ssd1315<DI>`   | ✅ I2C | 3 charge pump voltages (7.5-9.0V), internal IREF, 4 VCOMH levels, fade/blink, zoom, content scroll, column-bounded scrolling |
-| SSD1320    | `Ssd1320<DI>`   | ❌     | 160x160 resolution, 4-bit grayscale (16 levels), no charge pump (external VCC 8-18V), internal/external IREF, standalone init config (`InitConfig1320`) |
-| SSD1325    | `Ssd1325<DI>`   | ❌     | 128x80 resolution, 4-bit grayscale (16 levels), no charge pump (external VCC 8-16V), external IREF via resistor, quarter/half/full current range, VCOMH/precharge voltage control, standalone init config (`InitConfig1325`) |
-| SSD1327    | `Ssd1327<DI>`   | ❌     | 128x128 resolution, 4-bit grayscale (16 levels), internal VDD regulator (enabled by default), 256-step contrast, second precharge period, internal/external VSL, standalone init config (`InitConfig1327`) |
-| SSD1331    | _TODO_          | ...    | ... |
-| SSD1351    | _TODO_          | ...    | ... |
-| SSD1362    | _TODO_          | ...    | ... |
-| CH1116     | `Ch1116<DI>`    | ✅ I2C | 132x64 resolution, 4 pump voltages (6.4-10.0V), internal/external IREF with 4 resistor values, breathing light effect, horizontal scroll with column bounds, page-mode addressing |
+| Controller | Struct          | Tested | Key Differences | Price of device |
+|------------|-----------------|--------|-----------------|-----------------|
+| SSD1306    | `Ssd1306<DI>`   | ✅ I2C | Standard charge pump (on/off), 3 VCOMH levels, basic horizontal scroll | 2,11€ (2025/10/12) |
+| SSD1306B   | `Ssd1306b<DI>`  | ✅ I2C | 4 charge pump voltages (6.0-9.0V), internal IREF, 4 VCOMH levels, fade/blink, zoom, content scroll, column-bounded scrolling | N/A |
+| SSD1307    | `Ssd1307<DI>`   | ❌     | 128x39 resolution, no charge pump (external VCC 7-15V), external IREF, 3 VCOMH levels, horizontal scroll | N/A |
+| SSD1309    | `Ssd1309<DI>`   | ❌     | 128x64 resolution, no charge pump (external VCC 7-18V), 3 VCOMH levels (0.64/0.78/0.84 x VCC), horizontal scroll | N/A |
+| SSD1312    | `Ssd1312<DI>`   | ✅ I2C | 4 charge pump voltages (7.5-10.0V), internal/external IREF, 4 VCOMH levels, content scroll, column-bounded scrolling | 2.09€ (2026/02/17) |
+| SSD1315    | `Ssd1315<DI>`   | ✅ I2C | 3 charge pump voltages (7.5-9.0V), internal IREF, 4 VCOMH levels, fade/blink, zoom, content scroll, column-bounded scrolling | 1.77€ (2026/02/17) |
+| SSD1320    | `Ssd1320<DI>`   | ❌     | 160x160 resolution, 4-bit grayscale (16 levels), no charge pump (external VCC 8-18V), internal/external IREF, standalone `InitConfig` | N/A |
+| SSD1325    | `Ssd1325<DI>`   | ❌     | 128x80 resolution, 4-bit grayscale (16 levels), no charge pump (external VCC 8-16V), external IREF via resistor, quarter/half/full current range, VCOMH/precharge voltage control, standalone `InitConfig` | N/A |
+| SSD1327    | `Ssd1327<DI>`   | ❌     | 128x128 resolution, 4-bit grayscale (16 levels), internal VDD regulator (enabled by default), 256-step contrast, second precharge period, internal/external VSL, standalone `InitConfig` | N/A |
+| SSD1331    | _TODO_          | ...    | ... | N/A |
+| SSD1351    | _TODO_          | ...    | ... | N/A |
+| SSD1362    | _TODO_          | ...    | ... | N/A |
+| CH1116     | `Ch1116<DI>`    | ✅ I2C | 132x64 resolution, 4 pump voltages (6.4-10.0V), internal/external IREF with 4 resistor values, breathing light effect, horizontal scroll with column bounds, page-mode addressing | N/A |
 
 ## Quick Start
 
@@ -276,7 +276,7 @@ All drivers accept an `InitConfig` struct in their `init()` method to configure 
 
 The `Option<T>` fields (`addressing_mode`, `vcomh_deselect`) are skipped when `None`, which handles device-specific incompatibility. CH1116 ignores these two fields entirely since it uses page-mode addressing only and has its own raw VCOM API.
 
-**Note:** `Ssd1320`, `Ssd1325`, and `Ssd1327` use their own config structs (`InitConfig1320`, `InitConfig1325`, `InitConfig1327`) instead of `InitConfig` because they are grayscale controllers with fundamentally different register layouts and commands.
+**Note:** `Ssd1320`, `Ssd1325`, and `Ssd1327` use their own `InitConfig` structs (in their respective modules, e.g. `ssd1320::InitConfig`) instead of the shared `InitConfig` because they are grayscale controllers with fundamentally different register layouts and commands. For convenience, the root re-exports them as `InitConfig1320`, `InitConfig1325`, and `InitConfig1327`.
 
 ## SSD1306B-Specific API
 
@@ -388,7 +388,7 @@ display.stop_scroll().unwrap();
 
 ## SSD1320-Specific API
 
-The `Ssd1320` driver uses a standalone configuration (`InitConfig1320`) and `Gray4` pixel color:
+The `Ssd1320` driver uses a standalone configuration (`ssd1320::InitConfig`, re-exported as `InitConfig1320`) and `Gray4` pixel color:
 
 ```rust
 use oled_ssd_driver::{Ssd1320, IrefSetting1320, InitConfig1320};
@@ -417,7 +417,7 @@ display.display_on(false).unwrap();
 
 ## SSD1325-Specific API
 
-The `Ssd1325` driver uses a standalone configuration (`InitConfig1325`) and `Gray4` pixel color:
+The `Ssd1325` driver uses a standalone configuration (`ssd1325::InitConfig`, re-exported as `InitConfig1325`) and `Gray4` pixel color:
 
 ```rust
 use oled_ssd_driver::{Ssd1325, CurrentRange1325, InitConfig1325};
@@ -454,7 +454,7 @@ display.display_on(false).unwrap();
 
 ## SSD1327-Specific API
 
-The `Ssd1327` driver uses a standalone configuration (`InitConfig1327`) and `Gray4` pixel color:
+The `Ssd1327` driver uses a standalone configuration (`ssd1327::InitConfig`, re-exported as `InitConfig1327`) and `Gray4` pixel color:
 
 ```rust
 use oled_ssd_driver::{Ssd1327, InitConfig1327};
