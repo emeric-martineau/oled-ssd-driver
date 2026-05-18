@@ -7,6 +7,28 @@ Add to your `Cargo.toml`:
 oled-ssd-driver = "0.1"
 ```
 
+## SSD0303 over I2C
+
+```rust
+use oled_ssd_driver::{I2cInterface, Ssd0303, DEFAULT_I2C_ADDRESS};
+use embedded_graphics::{prelude::*, pixelcolor::BinaryColor, text::Text,
+    mono_font::{ascii::FONT_6X10, MonoTextStyle}};
+
+let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
+let mut display = Ssd0303::new(interface);
+
+display.init(&Default::default()).unwrap();
+display.clear_buffer();
+
+// SSD0303: 132x64 monochrome, page-mode addressing, internal DC-DC converter
+let style = MonoTextStyle::new(&FONT_6X10, BinaryColor::On);
+Text::new("Hello!", Point::new(0, 10), style)
+    .draw(&mut display)
+    .unwrap();
+
+display.flush().unwrap();
+```
+
 ## SSD1300 over SPI
 
 ```rust

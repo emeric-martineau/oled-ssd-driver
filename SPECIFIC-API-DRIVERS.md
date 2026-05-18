@@ -2,6 +2,49 @@
 
 This document describes the specific API for each driver beyond the common `DrawTarget` / `init` / `flush` interface.
 
+## SSD0303-Specific API
+
+The `Ssd0303` driver uses a standalone configuration (`ssd0303::InitConfig`, re-exported as `InitConfig0303`) and `BinaryColor` pixel color:
+
+```rust
+use oled_ssd_driver::{Ssd0303, InitConfig0303, ScrollInterval0303};
+
+// Custom init config
+let config = InitConfig0303 {
+    contrast: 0x80,
+    segment_remap: true,
+    com_scan_reversed: true,
+    dc_dc_enable: true,
+    display_on: true,
+    ..Default::default()
+};
+display.init(&config).unwrap();
+
+// Set contrast (0-255)
+display.set_contrast(0xCF).unwrap();
+
+// Set VCOM deselect level (7-bit value, 0-127)
+display.set_vcomh(0x35).unwrap();
+
+// Set DC-DC on/off
+display.set_dc_dc(true).unwrap();
+
+// Set brightness for color banks (0-255)
+display.set_brightness(0x80).unwrap();
+
+// Horizontal scroll (start_page, end_page, num_columns_per_step, interval)
+display.start_horizontal_scroll(0, 7, 1, ScrollInterval0303::Frames64).unwrap();
+
+// Stop scrolling
+display.stop_scroll().unwrap();
+
+// Inverse display
+display.set_inverse(true).unwrap();
+
+// Display on/off
+display.display_on(false).unwrap();
+```
+
 ## SSD1300-Specific API
 
 The `Ssd1300` driver uses a standalone configuration (`ssd1300::InitConfig`, re-exported as `InitConfig1300`) and `BinaryColor` pixel color:

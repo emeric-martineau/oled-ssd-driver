@@ -4,6 +4,7 @@ pub mod ch1116;
 mod common;
 mod error;
 pub mod interface;
+pub mod ssd0303;
 pub mod ssd1300;
 pub mod ssd1306;
 pub mod ssd1306b;
@@ -32,6 +33,7 @@ pub use error::DisplayError;
 pub use interface::{
     AsyncDisplayInterface, DisplayInterface, I2cInterface, SpiInterface, DEFAULT_I2C_ADDRESS,
 };
+pub use ssd0303::{InitConfig as InitConfig0303, ScrollInterval0303, Ssd0303};
 pub use ssd1300::{InitConfig as InitConfig1300, ScrollInterval1300, Ssd1300};
 pub use ssd1306::{
     AddressingMode, ComPinConfig, ScrollDirection, ScrollInterval, Ssd1306, VcomhLevel,
