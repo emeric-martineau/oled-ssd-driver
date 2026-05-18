@@ -1,17 +1,17 @@
 # oled-ssd-driver
 
-A platform-independent, `#![no_std]` Rust driver for **SSD1306**, **SSD1306B**, **SSD1307**, **SSD1309**, **SSD1312**, **SSD1315**, **SSD1320**, **SSD1325**, **SSD1327**, **SSD1331**, **SSD1351**, and **CH1116** OLED display controllers.
+A platform-independent, `#![no_std]` Rust driver for **SSD1306**, **SSD1306B**, **SSD1307**, **SSD1309**, **SSD1312**, **SSD1315**, **SSD1320**, **SSD1325**, **SSD1327**, **SSD1331**, **SSD1351**, **SSD1362**, and **CH1116** OLED display controllers.
 
 Works on any embedded target (ESP32, STM32, nRF, RP2040, etc.) with zero heap allocation.
 
 ## Features
 
-- **Twelve controller support** -- `Ssd1306`, `Ssd1306b`, `Ssd1307`, `Ssd1309`, `Ssd1312`, `Ssd1315`, `Ssd1320`, `Ssd1325`, `Ssd1327`, `Ssd1331`, `Ssd1351`, and `Ch1116` structs with separate, optimized init sequences
+- **Thirteen controller support** -- `Ssd1306`, `Ssd1306b`, `Ssd1307`, `Ssd1309`, `Ssd1312`, `Ssd1315`, `Ssd1320`, `Ssd1325`, `Ssd1327`, `Ssd1331`, `Ssd1351`, `Ssd1362`, and `Ch1116` structs with separate, optimized init sequences
 - **I2C and SPI** -- Generic over `embedded-hal 1.0` bus traits
 - **Sync and async** -- Full async API via `embedded-hal-async`
 - **embedded-graphics integration** -- Implements `DrawTarget` for the [embedded-graphics](https://github.com/embedded-graphics/embedded-graphics) ecosystem
 - **No lifetimes on the driver struct** -- Simple ownership model, easy to store in global statics
-- **Internal framebuffer** -- Monochrome (up to 132x64 / 1056 bytes), 4-bit grayscale (128x80 / 5120 bytes for SSD1325, 128x128 / 8192 bytes for SSD1327, 160x160 / 12800 bytes for SSD1320), or 65K color RGB565 (96x64 / 12288 bytes for SSD1331, 128x128 / 32768 bytes for SSD1351), flushed on demand
+- **Internal framebuffer** -- Monochrome (up to 132x64 / 1056 bytes), 4-bit grayscale (128x80 / 5120 bytes for SSD1325, 128x128 / 8192 bytes for SSD1327, 160x160 / 12800 bytes for SSD1320, 256x64 / 8192 bytes for SSD1362), or 65K color RGB565 (96x64 / 12288 bytes for SSD1331, 128x128 / 32768 bytes for SSD1351), flushed on demand
 
 ## Supported Controllers
 
@@ -28,7 +28,7 @@ Works on any embedded target (ESP32, STM32, nRF, RP2040, etc.) with zero heap al
 | SSD1327    | `Ssd1327<DI>`   | ❌     | 128x128 resolution, 4-bit grayscale (16 levels), internal VDD regulator (enabled by default), 256-step contrast, second precharge period, internal/external VSL, standalone `InitConfig` | N/A |
 | SSD1331    | `Ssd1331<DI>`   | ❌     | 96x64 resolution, 65K color (RGB565), no charge pump (external VCC 8-18V), 256-step contrast per color channel, 16-step master current, SPI only (serial write-only), standalone `InitConfig` | N/A |
 | SSD1351    | `Ssd1351<DI>`   | ❌     | 128x128 resolution, 65K color (RGB565), internal VDD regulator, 256-step contrast per color channel, 16-step master contrast, SPI only (serial write-only), command lock mechanism, standalone `InitConfig` | N/A |
-| SSD1362    | _TODO_          | ...    | ... | N/A |
+| SSD1362    | `Ssd1362<DI>`   | ❌     | 256x64 resolution, 4-bit grayscale (16 levels), internal VDD regulator, 256-step contrast, internal/external IREF, SEG left/right remap, standalone `InitConfig` | N/A |
 | CH1116     | `Ch1116<DI>`    | ✅ I2C | 132x64 resolution, 4 pump voltages (6.4-10.0V), internal/external IREF with 4 resistor values, breathing light effect, horizontal scroll with column bounds, page-mode addressing | N/A |
 
 ## Quick Start
@@ -238,6 +238,28 @@ Text::new("Hello!", Point::new(0, 10), style)
 display.flush().unwrap();
 ```
 
+### SSD1362 over I2C (Grayscale)
+
+```rust
+use oled_ssd_driver::{I2cInterface, Ssd1362, DEFAULT_I2C_ADDRESS};
+use embedded_graphics::{prelude::*, pixelcolor::Gray4, text::Text,
+    mono_font::{ascii::FONT_6X10, MonoTextStyle}};
+
+let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
+let mut display = Ssd1362::new(interface);
+
+display.init(&Default::default()).unwrap();
+display.clear_buffer();
+
+// SSD1362 uses Gray4 (4-bit grayscale, 16 levels: 0x00-0x0F)
+let style = MonoTextStyle::new(&FONT_6X10, Gray4::new(0x0F));
+Text::new("Hello!", Point::new(0, 10), style)
+    .draw(&mut display)
+    .unwrap();
+
+display.flush().unwrap();
+```
+
 ### SSD1331 over SPI (Color)
 
 ```rust
@@ -320,7 +342,7 @@ All drivers accept an `InitConfig` struct in their `init()` method to configure 
 
 The `Option<T>` fields (`addressing_mode`, `vcomh_deselect`) are skipped when `None`, which handles device-specific incompatibility. CH1116 ignores these two fields entirely since it uses page-mode addressing only and has its own raw VCOM API.
 
-**Note:** `Ssd1320`, `Ssd1325`, `Ssd1327`, `Ssd1331`, and `Ssd1351` use their own `InitConfig` structs (in their respective modules, e.g. `ssd1320::InitConfig`) instead of the shared `InitConfig` because they are grayscale/color controllers with fundamentally different register layouts and commands. For convenience, the root re-exports them as `InitConfig1320`, `InitConfig1325`, `InitConfig1327`, `InitConfig1331`, and `InitConfig1351`.
+**Note:** `Ssd1320`, `Ssd1325`, `Ssd1327`, `Ssd1331`, `Ssd1351`, and `Ssd1362` use their own `InitConfig` structs (in their respective modules, e.g. `ssd1320::InitConfig`) instead of the shared `InitConfig` because they are grayscale/color controllers with fundamentally different register layouts and commands. For convenience, the root re-exports them as `InitConfig1320`, `InitConfig1325`, `InitConfig1327`, `InitConfig1331`, `InitConfig1351`, and `InitConfig1362`.
 
 ## SSD1306B-Specific API
 
@@ -534,6 +556,49 @@ display.set_inverse(true).unwrap();
 display.display_on(false).unwrap();
 ```
 
+## SSD1362-Specific API
+
+The `Ssd1362` driver uses a standalone configuration (`ssd1362::InitConfig`, re-exported as `InitConfig1362`) and `Gray4` pixel color:
+
+```rust
+use oled_ssd_driver::{Ssd1362, InitConfig1362};
+
+// Custom init config with remap options
+let config = InitConfig1362 {
+    contrast: 0x7F,
+    column_remap: true,
+    com_remap: true,
+    seg_split_odd_even: true,
+    seg_left_right_remap: false,
+    internal_vdd: true,
+    internal_iref: true,
+    display_on: true,
+    ..Default::default()
+};
+display.init(&config).unwrap();
+
+// Set contrast (0-255, 8-bit)
+display.set_contrast(0xCF).unwrap();
+
+// Set VCOMH deselect level (4-bit value, 0-7)
+display.set_vcomh(0x07).unwrap();
+
+// Set precharge voltage (5-bit value, 0-31)
+display.set_precharge_voltage(0x08).unwrap();
+
+// Enable/disable internal VDD regulator
+display.set_internal_vdd(true).unwrap();
+
+// Select internal/external IREF
+display.set_iref(true).unwrap();
+
+// Inverse display
+display.set_inverse(true).unwrap();
+
+// Display on/off
+display.display_on(false).unwrap();
+```
+
 ## SSD1331-Specific API
 
 The `Ssd1331` driver uses a standalone configuration (`ssd1331::InitConfig`, re-exported as `InitConfig1331`) and `Rgb565` pixel color:
@@ -695,6 +760,7 @@ examples/
         ssd1325/       # ESP32 + SSD1325 over I2C (grayscale)
         ssd1327/       # ESP32 + SSD1327 over I2C (grayscale)
         ssd1331/       # ESP32 + SSD1331 over SPI (65K color)
+        ssd1362/       # ESP32 + SSD1362 over I2C (grayscale, 256x64)
         ssd1351/       # ESP32 + SSD1351 over SPI (65K color, 128x128)
         ch1116/        # ESP32 + CH1116 over I2C
     stm32-f1/
@@ -708,6 +774,7 @@ examples/
         ssd1325/       # STM32F103 "Blue Pill" + SSD1325 over I2C (grayscale)
         ssd1327/       # STM32F103 "Blue Pill" + SSD1327 over I2C (grayscale)
         ssd1331/       # STM32F103 "Blue Pill" + SSD1331 over SPI (65K color)
+        ssd1362/       # STM32F103 "Blue Pill" + SSD1362 over I2C (grayscale, 256x64)
         ssd1351/       # STM32F103 "Blue Pill" + SSD1351 over SPI (65K color, 128x128)
         ch1116/        # STM32F103 "Blue Pill" + CH1116 over I2C
 ```

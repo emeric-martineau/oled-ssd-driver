@@ -15,6 +15,7 @@ pub mod ssd1325;
 pub mod ssd1327;
 pub mod ssd1331;
 pub mod ssd1351;
+pub mod ssd1362;
 
 pub use ch1116::{
     BreathingBrightnessCh1116, Ch1116, ComScanDirectionCh1116, IrefResistorCh1116,
@@ -57,6 +58,7 @@ pub use ssd1351::{
     DisplaySize1351, InitConfig as InitConfig1351, Ssd1351, SIZE_128X128 as SIZE_128X128_COLOR,
     SIZE_128X96 as SIZE_128X96_COLOR,
 };
+pub use ssd1362::{DisplaySize1362, InitConfig as InitConfig1362, Ssd1362, SIZE_256X64};
 
 /// Default display width (128 pixels)
 pub const WIDTH: u8 = 128;
