@@ -61,3 +61,4 @@ Copy these from an existing ESP32 example (e.g., `ssd1306/`) when creating a new
 - All code changes are produced by the AI agent.
 - Feature work follows specs in `features/` (check status field).
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/) in English.
+- After implementing a feature, add `## What was created` and `## What was updated` sections to the feature file listing all new and modified files with a short description of each.
