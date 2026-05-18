@@ -14,6 +14,7 @@ pub mod ssd1320;
 pub mod ssd1325;
 pub mod ssd1327;
 pub mod ssd1331;
+pub mod ssd1332;
 pub mod ssd1351;
 pub mod ssd1362;
 
@@ -54,6 +55,9 @@ pub use ssd1325::{
 };
 pub use ssd1327::{DisplaySize1327, InitConfig as InitConfig1327, Ssd1327, SIZE_128X128};
 pub use ssd1331::{DisplaySize1331, InitConfig as InitConfig1331, Ssd1331, SIZE_96X64};
+pub use ssd1332::{
+    DisplaySize1332, InitConfig as InitConfig1332, Ssd1332, SIZE_96X64 as SIZE_96X64_1332,
+};
 pub use ssd1351::{
     DisplaySize1351, InitConfig as InitConfig1351, Ssd1351, SIZE_128X128 as SIZE_128X128_COLOR,
     SIZE_128X96 as SIZE_128X96_COLOR,
