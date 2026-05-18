@@ -113,6 +113,8 @@ examples/
         ssd1351/       # ESP32 + SSD1351 over SPI (65K color, 128x128)
         ch1116/        # ESP32 + CH1116 over I2C
     stm32-f1/
+        ssd0303/       # STM32F103 "Blue Pill" + SSD0303 over I2C (132x64 monochrome)
+        ssd1300/       # STM32F103 "Blue Pill" + SSD1300 over SPI (104x48 monochrome)    
         ssd1306/       # STM32F103 "Blue Pill" + SSD1306 over I2C
         ssd1306b/      # STM32F103 "Blue Pill" + SSD1306B over I2C
         ssd1307/       # STM32F103 "Blue Pill" + SSD1307 over I2C
