@@ -1,5 +1,6 @@
 #![no_std]
 
+pub mod ch1115;
 pub mod ch1116;
 mod common;
 mod error;
@@ -20,6 +21,11 @@ pub mod ssd1332;
 pub mod ssd1351;
 pub mod ssd1362;
 
+pub use ch1115::{
+    BreathingBrightnessCh1115, Ch1115, ComScanDirectionCh1115, IrefResistorCh1115,
+    IrefSourceCh1115, PumpVoltageCh1115, ScrollDirectionCh1115, ScrollIntervalCh1115,
+    ScrollModeCh1115, SegPadsConfigCh1115,
+};
 pub use ch1116::{
     BreathingBrightnessCh1116, Ch1116, ComScanDirectionCh1116, IrefResistorCh1116,
     IrefSourceCh1116, PumpVoltageCh1116, ScrollDirectionCh1116, ScrollIntervalCh1116,

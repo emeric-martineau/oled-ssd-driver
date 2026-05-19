@@ -473,6 +473,49 @@ display.set_inverse(true).unwrap();
 display.display_on(false).unwrap();
 ```
 
+## CH1115-Specific API
+
+The `Ch1115` driver exposes additional hardware features:
+
+```rust
+use oled_ssd_driver::{Ch1115, PumpVoltageCh1115, IrefSourceCh1115, IrefResistorCh1115,
+    BreathingBrightnessCh1115, ScrollDirectionCh1115, ScrollIntervalCh1115, ScrollModeCh1115,
+    SegPadsConfigCh1115};
+
+// Pump voltage (7.4V, 8.0V, 9.0V, 10.0V)
+display.set_pump_voltage(PumpVoltageCh1115::V9_0).unwrap();
+
+// IREF source and resistor (internal/external, 510K/310K/220K/180K)
+display.set_iref(IrefSourceCh1115::Internal, IrefResistorCh1115::K310).unwrap();
+
+// VCOM deselect level (raw 8-bit value, see datasheet)
+display.set_vcom_deselect(0x35).unwrap();
+
+// DC-DC converter ON/OFF
+display.set_dc_dc(true).unwrap();
+
+// Breathing light effect (ON/OFF, brightness, interval 1-8 frames)
+display.set_breathing_light(true, BreathingBrightnessCh1115::Half, 3).unwrap();
+
+// Horizontal scroll
+display.set_scroll_columns(10, 100).unwrap();
+display.start_horizontal_scroll(
+    ScrollDirectionCh1115::Right, 0, 7,
+    ScrollIntervalCh1115::Frames6
+).unwrap();
+
+// Scroll mode (continuous or single screen)
+display.set_scroll_mode(ScrollModeCh1115::SingleScreen).unwrap();
+
+display.stop_scroll().unwrap();
+
+// SEG pads hardware configuration
+display.set_seg_pads_config(SegPadsConfigCh1115::EvenRight).unwrap();
+
+// Adaptive power save
+display.set_adaptive_power_save(true).unwrap();
+```
+
 ## CH1116-Specific API
 
 The `Ch1116` driver exposes additional hardware features:

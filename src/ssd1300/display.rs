@@ -161,13 +161,8 @@ impl<DI: DisplayInterface> Ssd1300<DI> {
     }
 
     /// SSD1300 §8 — Set DC-DC on/off and VCOMH source
-    pub fn set_dc_dc(
-        &mut self,
-        enable: bool,
-        internal_vcomh: bool,
-    ) -> Result<(), DisplayError> {
-        let byte = if enable { 0x01 } else { 0x00 }
-            | if internal_vcomh { 0x02 } else { 0x00 };
+    pub fn set_dc_dc(&mut self, enable: bool, internal_vcomh: bool) -> Result<(), DisplayError> {
+        let byte = if enable { 0x01 } else { 0x00 } | if internal_vcomh { 0x02 } else { 0x00 };
         self.send_raw_command(&[0xAD, byte])
     }
 

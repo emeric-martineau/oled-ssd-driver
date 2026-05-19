@@ -164,6 +164,25 @@ display.set_charge_pump_voltage(ChargePumpVoltage1315::V8_5).unwrap();
 display.flush().unwrap();
 ```
 
+## CH1115 over I2C
+
+```rust
+use oled_ssd_driver::{I2cInterface, Ch1115, PumpVoltageCh1115, DEFAULT_I2C_ADDRESS};
+
+let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
+let mut display = Ch1115::new(interface);
+
+display.init(&Default::default()).unwrap();
+display.clear_buffer();
+
+// CH1115-specific: select pump voltage (7.4V, 8.0V, 9.0V, or 10.0V)
+display.set_pump_voltage(PumpVoltageCh1115::V9_0).unwrap();
+
+// ... draw with embedded-graphics ...
+
+display.flush().unwrap();
+```
+
 ## CH1116 over I2C
 
 ```rust

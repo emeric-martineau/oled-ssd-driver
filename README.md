@@ -1,12 +1,12 @@
 # oled-ssd-driver
 
-A platform-independent, `#![no_std]` Rust driver for **SSD0303**, **SSD1300**, **SSD1306**, **SSD1306B**, **SSD1307**, **SSD1309**, **SSD1312**, **SSD1315**, **SSD1320**, **SSD1325**, **SSD1327**, **SSD1331**, **SSD1332**, **SSD1351**, **SSD1362**, and **CH1116** OLED display controllers.
+A platform-independent, `#![no_std]` Rust driver for **SSD0303**, **SSD1300**, **SSD1306**, **SSD1306B**, **SSD1307**, **SSD1309**, **SSD1312**, **SSD1315**, **SSD1320**, **SSD1325**, **SSD1327**, **SSD1331**, **SSD1332**, **SSD1351**, **SSD1362**, **CH1115**, and **CH1116** OLED display controllers.
 
 Works on any embedded target (ESP32, STM32, nRF, RP2040, etc.) with zero heap allocation.
 
 ## Features
 
-- **Sixteen controller support** -- `Ssd0303`, `Ssd1300`, `Ssd1306`, `Ssd1306b`, `Ssd1307`, `Ssd1309`, `Ssd1312`, `Ssd1315`, `Ssd1320`, `Ssd1325`, `Ssd1327`, `Ssd1331`, `Ssd1332`, `Ssd1351`, `Ssd1362`, and `Ch1116` structs with separate, optimized init sequences
+- **Seventeen controller support** -- `Ssd0303`, `Ssd1300`, `Ssd1306`, `Ssd1306b`, `Ssd1307`, `Ssd1309`, `Ssd1312`, `Ssd1315`, `Ssd1320`, `Ssd1325`, `Ssd1327`, `Ssd1331`, `Ssd1332`, `Ssd1351`, `Ssd1362`, `Ch1115`, and `Ch1116` structs with separate, optimized init sequences
 - **I2C and SPI** -- Generic over `embedded-hal 1.0` bus traits
 - **Sync and async** -- Full async API via `embedded-hal-async`
 - **embedded-graphics integration** -- Implements `DrawTarget` for the [embedded-graphics](https://github.com/embedded-graphics/embedded-graphics) ecosystem
@@ -32,6 +32,7 @@ Works on any embedded target (ESP32, STM32, nRF, RP2040, etc.) with zero heap al
 | SSD1332    | `Ssd1332<DI>`   | ❌     | 96x64 resolution, 65K color (RGB565), internal DC-DC booster, 256-step contrast per color channel, 16-step master current, separate VPA/VPB/VPC pre-charge voltages, power save mode, SPI only (serial write-only), standalone `InitConfig` | N/A |
 | SSD1351    | `Ssd1351<DI>`   | ❌     | 128x128 resolution, 65K color (RGB565), internal VDD regulator, 256-step contrast per color channel, 16-step master contrast, SPI only (serial write-only), command lock mechanism, standalone `InitConfig` | N/A |
 | SSD1362    | `Ssd1362<DI>`   | ❌     | 256x64 resolution, 4-bit grayscale (16 levels), internal VDD regulator, 256-step contrast, internal/external IREF, SEG left/right remap, standalone `InitConfig` | N/A |
+| CH1115     | `Ch1115<DI>`    | ❌     | 128x64 resolution, 4 pump voltages (7.4-10.0V), internal/external IREF with 4 resistor values, breathing light effect, horizontal scroll with column bounds, adaptive power save, SEG pads configuration, page-mode addressing | N/A |
 | CH1116     | `Ch1116<DI>`    | ✅ I2C | 132x64 resolution, 4 pump voltages (6.4-10.0V), internal/external IREF with 4 resistor values, breathing light effect, horizontal scroll with column bounds, page-mode addressing | N/A |
 
 ## Quick Start
@@ -42,8 +43,8 @@ See **[QUICK_START.md](QUICK_START.md)** for usage examples of all supported con
 
 All drivers accept an `InitConfig` struct in their `init()` method to configure the display at startup:
 
-| Field | Type | Default | Description | SSD13xx | CH1116 |
-|-------|------|---------|-------------|---------|--------|
+| Field | Type | Default | Description | SSD13xx | CH1115/CH1116 |
+|-------|------|---------|-------------|---------|---------------|
 | `segment_remap` | `bool` | `true` | Column address mapped in reverse direction to SEG pins | Applied | Applied |
 | `com_scan_reversed` | `bool` | `true` | COM scan from COM[N-1] to COM0 (vertically flipped) | Applied | Applied |
 | `display_on` | `bool` | `true` | Turn the display on at the end of initialization | Applied | Applied |
@@ -56,7 +57,7 @@ All drivers accept an `InitConfig` struct in their `init()` method to configure 
 | `inverse_display` | `bool` | `false` | Swap ON/OFF pixels | Applied | Applied |
 | `deactivate_scroll` | `bool` | `true` | Deactivate scroll during init | Applied | Applied |
 
-The `Option<T>` fields (`addressing_mode`, `vcomh_deselect`) are skipped when `None`, which handles device-specific incompatibility. CH1116 ignores these two fields entirely since it uses page-mode addressing only and has its own raw VCOM API.
+The `Option<T>` fields (`addressing_mode`, `vcomh_deselect`) are skipped when `None`, which handles device-specific incompatibility. CH1115 and CH1116 ignore these two fields entirely since they use page-mode addressing only and have their own raw VCOM API.
 
 **Note:** `Ssd0303`, `Ssd1300`, `Ssd1320`, `Ssd1325`, `Ssd1327`, `Ssd1331`, `Ssd1332`, `Ssd1351`, and `Ssd1362` use their own `InitConfig` structs (in their respective modules, e.g. `ssd0303::InitConfig`) instead of the shared `InitConfig` because they have fundamentally different register layouts and commands. For convenience, the root re-exports them as `InitConfig0303`, `InitConfig1300`, `InitConfig1320`, `InitConfig1325`, `InitConfig1327`, `InitConfig1331`, `InitConfig1332`, `InitConfig1351`, and `InitConfig1362`.
 
@@ -111,6 +112,7 @@ examples/
         ssd1332/       # ESP32 + SSD1332 over SPI (65K color)
         ssd1362/       # ESP32 + SSD1362 over I2C (grayscale, 256x64)
         ssd1351/       # ESP32 + SSD1351 over SPI (65K color, 128x128)
+        ch1115/        # ESP32 + CH1115 over I2C
         ch1116/        # ESP32 + CH1116 over I2C
     stm32-f1/
         ssd0303/       # STM32F103 "Blue Pill" + SSD0303 over I2C (132x64 monochrome)
@@ -128,6 +130,7 @@ examples/
         ssd1332/       # STM32F103 "Blue Pill" + SSD1332 over SPI (65K color)
         ssd1362/       # STM32F103 "Blue Pill" + SSD1362 over I2C (grayscale, 256x64)
         ssd1351/       # STM32F103 "Blue Pill" + SSD1351 over SPI (65K color, 128x128)
+        ch1115/        # STM32F103 "Blue Pill" + CH1115 over I2C
         ch1116/        # STM32F103 "Blue Pill" + CH1116 over I2C
 ```
 
