@@ -5,31 +5,31 @@ use embedded_graphics_core::{
     Pixel,
 };
 
-use crate::common::{DisplayCore, DisplaySize, InitConfig, SIZE_128X39};
+use crate::common::{
+    Buffered, DisplayBufferMode, DisplayCore, DisplaySize, InitConfig, Unbuffered, SIZE_128X39,
+};
 use crate::error::DisplayError;
 use crate::interface::{AsyncDisplayInterface, DisplayInterface};
 use crate::ssd1306::command::{Command, ScrollDirection, ScrollInterval};
 
 /// SSD1307 OLED display driver.
 ///
-/// 128x39 dot matrix OLED/PLED driver. Unlike SSD1306, the SSD1307 does not have
-/// an internal charge pump — it requires external VCC (7-15V).
-///
-/// Generic over the bus interface `DI` (I2C or SPI).
-/// Owns an internal framebuffer sized for the configured display dimensions.
-pub struct Ssd1307<DI> {
-    core: DisplayCore<DI>,
+/// Generic over the bus interface `DI` (I2C or SPI) and buffer mode `MODE`.
+/// In `Buffered` mode (default) the driver owns a framebuffer and supports all drawing APIs.
+/// In `Unbuffered` mode the driver owns no RAM buffer; only control commands are available.
+pub struct Ssd1307<DI, MODE: DisplayBufferMode = Buffered> {
+    core: DisplayCore<DI, MODE>,
 }
 
-impl<DI> Ssd1307<DI> {
-    /// Create a new SSD1307 driver with default 128x39 display size.
+impl<DI> Ssd1307<DI, Buffered> {
+    /// Create a new SSD1307 driver with default 128x39 display size (buffered).
     pub fn new(interface: DI) -> Self {
         Self {
             core: DisplayCore::new(interface, SIZE_128X39),
         }
     }
 
-    /// Create a new SSD1307 driver with a custom display size.
+    /// Create a new SSD1307 driver with a custom display size (buffered).
     pub fn new_with_size(interface: DI, size: DisplaySize) -> Self {
         Self {
             core: DisplayCore::new(interface, size),
@@ -59,15 +59,38 @@ impl<DI> Ssd1307<DI> {
     }
 }
 
-// --- Synchronous API ---
+impl<DI> Ssd1307<DI, Unbuffered> {
+    /// Create a new SSD1307 driver in unbuffered mode with default 128x39 display size.
+    pub fn new_unbuffered(interface: DI) -> Self {
+        Self {
+            core: DisplayCore::new(interface, SIZE_128X39),
+        }
+    }
 
-impl<DI: DisplayInterface> Ssd1307<DI> {
+    /// Create a new SSD1307 driver in unbuffered mode with a custom display size.
+    pub fn new_unbuffered_with_size(interface: DI, size: DisplaySize) -> Self {
+        Self {
+            core: DisplayCore::new(interface, size),
+        }
+    }
+
+    pub fn release(self) -> DI {
+        self.core.interface
+    }
+
+    pub fn size_config(&self) -> DisplaySize {
+        self.core.size
+    }
+}
+
+// --- Synchronous API (Buffered) ---
+
+impl<DI: DisplayInterface> Ssd1307<DI, Buffered> {
     fn send_command(&mut self, cmd: Command) -> Result<(), DisplayError> {
         self.core.send_command(cmd)
     }
 
     /// SSD1307 §7.9 — Power ON initialization sequence.
-    /// No charge pump (external VCC required), external IREF.
     pub fn init(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
         self.core.init_common(config)?;
         if config.display_on {
@@ -131,9 +154,75 @@ impl<DI: DisplayInterface> Ssd1307<DI> {
     }
 }
 
-// --- Async API ---
+// --- Synchronous API (Unbuffered) ---
 
-impl<DI: AsyncDisplayInterface> Ssd1307<DI> {
+impl<DI: DisplayInterface> Ssd1307<DI, Unbuffered> {
+    fn send_command(&mut self, cmd: Command) -> Result<(), DisplayError> {
+        self.core.send_command(cmd)
+    }
+
+    /// SSD1307 §7.9 — Power ON initialization sequence (unbuffered).
+    pub fn init(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
+        self.core.init_common(config)?;
+        if config.display_on {
+            self.send_command(Command::DisplayOn(true))?;
+        }
+        Ok(())
+    }
+
+    /// SSD1307 §9.1.12 — Turn the display panel ON or OFF (sleep mode)
+    pub fn display_on(&mut self, on: bool) -> Result<(), DisplayError> {
+        self.core.display_on(on)
+    }
+
+    /// SSD1307 §9.1.7 — Set contrast (0-255)
+    pub fn set_contrast(&mut self, contrast: u8) -> Result<(), DisplayError> {
+        self.core.set_contrast(contrast)
+    }
+
+    /// SSD1307 §9.1.10 — Invert the display (swap ON/OFF pixels)
+    pub fn set_inverse(&mut self, inverse: bool) -> Result<(), DisplayError> {
+        self.core.set_inverse(inverse)
+    }
+
+    /// SSD1307 §9.2.1 — Configure and activate horizontal scrolling
+    pub fn start_horizontal_scroll(
+        &mut self,
+        direction: ScrollDirection,
+        start_page: u8,
+        end_page: u8,
+        interval: ScrollInterval,
+    ) -> Result<(), DisplayError> {
+        let max_page = self.core.size.pages() - 1;
+        if start_page > max_page || end_page > max_page || end_page < start_page {
+            return Err(DisplayError::InvalidArgument);
+        }
+        self.core.stop_scroll()?;
+        let cmd_byte = match direction {
+            ScrollDirection::Right => 0x26,
+            ScrollDirection::Left => 0x27,
+        };
+        self.core.interface.send_command(&[
+            cmd_byte,
+            0x00,
+            start_page,
+            interval as u8,
+            end_page,
+            0x00,
+            0xFF,
+        ])?;
+        self.core.interface.send_command(&[0x2F])
+    }
+
+    /// SSD1307 §9.2.3 — Stop scrolling
+    pub fn stop_scroll(&mut self) -> Result<(), DisplayError> {
+        self.core.stop_scroll()
+    }
+}
+
+// --- Async API (Buffered) ---
+
+impl<DI: AsyncDisplayInterface> Ssd1307<DI, Buffered> {
     /// SSD1307 §7.9 — Async power ON initialization sequence.
     pub async fn init_async(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
         self.core.init_common_async(config).await?;
@@ -166,15 +255,45 @@ impl<DI: AsyncDisplayInterface> Ssd1307<DI> {
     }
 }
 
-// --- embedded-graphics DrawTarget ---
+// --- Async API (Unbuffered) ---
 
-impl<DI> OriginDimensions for Ssd1307<DI> {
+impl<DI: AsyncDisplayInterface> Ssd1307<DI, Unbuffered> {
+    /// SSD1307 §7.9 — Async power ON initialization sequence (unbuffered).
+    pub async fn init_async(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
+        self.core.init_common_async(config).await?;
+        if config.display_on {
+            self.core
+                .send_command_async(Command::DisplayOn(true))
+                .await?;
+        }
+        Ok(())
+    }
+
+    /// SSD1307 §9.1.12 — Async display ON/OFF
+    pub async fn display_on_async(&mut self, on: bool) -> Result<(), DisplayError> {
+        self.core.display_on_async(on).await
+    }
+
+    /// SSD1307 §9.1.7 — Async set contrast
+    pub async fn set_contrast_async(&mut self, contrast: u8) -> Result<(), DisplayError> {
+        self.core.set_contrast_async(contrast).await
+    }
+
+    /// SSD1307 §9.1.10 — Async set inverse
+    pub async fn set_inverse_async(&mut self, inverse: bool) -> Result<(), DisplayError> {
+        self.core.set_inverse_async(inverse).await
+    }
+}
+
+// --- embedded-graphics DrawTarget (Buffered only) ---
+
+impl<DI, MODE: DisplayBufferMode> OriginDimensions for Ssd1307<DI, MODE> {
     fn size(&self) -> Size {
         Size::new(self.core.size.width as u32, self.core.size.height as u32)
     }
 }
 
-impl<DI> DrawTarget for Ssd1307<DI> {
+impl<DI> DrawTarget for Ssd1307<DI, Buffered> {
     type Color = BinaryColor;
     type Error = core::convert::Infallible;
 

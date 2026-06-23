@@ -32,8 +32,8 @@ pub use ch1116::{
     ScrollModeCh1116,
 };
 pub use common::{
-    DisplaySize, InitConfig, SIZE_104X48, SIZE_128X32, SIZE_128X39, SIZE_128X64, SIZE_132X64,
-    SIZE_64X48, SIZE_96X16,
+    Buffered, DisplaySize, InitConfig, Unbuffered, SIZE_104X48, SIZE_128X32, SIZE_128X39,
+    SIZE_128X64, SIZE_132X64, SIZE_64X48, SIZE_96X16,
 };
 pub use error::DisplayError;
 pub use interface::{

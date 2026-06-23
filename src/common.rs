@@ -6,6 +6,36 @@ pub(crate) const MAX_WIDTH: u8 = 132;
 pub(crate) const MAX_PAGES: u8 = 8;
 pub(crate) const BUFFER_SIZE: usize = MAX_WIDTH as usize * MAX_PAGES as usize;
 
+/// Marker type for buffered mode (default). The driver owns a framebuffer; pixels are written
+/// to RAM and sent to the display on `flush()`.
+pub struct Buffered;
+
+/// Marker type for unbuffered mode. The driver owns no framebuffer, saving 2–32 KB of RAM.
+/// Drawing APIs (`set_pixel`, `clear_buffer`, `flush`, `DrawTarget`) are not available,
+/// except for RGB565 drivers where each pixel can be sent directly.
+pub struct Unbuffered;
+
+/// Binds a buffer mode marker to a concrete storage type for Group A (monochrome) drivers
+/// that use `DisplayCore`. `Buffered` uses a 1056-byte array; `Unbuffered` uses `()`.
+///
+/// This is a sealed trait implemented only for `Buffered` and `Unbuffered`.
+pub trait DisplayBufferMode {
+    type Buffer;
+    fn new_buffer() -> Self::Buffer;
+}
+
+impl DisplayBufferMode for Buffered {
+    type Buffer = [u8; BUFFER_SIZE];
+    fn new_buffer() -> Self::Buffer {
+        [0u8; BUFFER_SIZE]
+    }
+}
+
+impl DisplayBufferMode for Unbuffered {
+    type Buffer = ();
+    fn new_buffer() -> Self::Buffer {}
+}
+
 /// Display dimensions configuration.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DisplaySize {
@@ -89,21 +119,23 @@ impl Default for InitConfig {
     }
 }
 
-pub(crate) struct DisplayCore<DI> {
+pub(crate) struct DisplayCore<DI, MODE: DisplayBufferMode = Buffered> {
     pub interface: DI,
-    pub buffer: [u8; BUFFER_SIZE],
+    pub buffer: MODE::Buffer,
     pub size: DisplaySize,
 }
 
-impl<DI> DisplayCore<DI> {
+impl<DI, MODE: DisplayBufferMode> DisplayCore<DI, MODE> {
     pub fn new(interface: DI, size: DisplaySize) -> Self {
         Self {
             interface,
-            buffer: [0u8; BUFFER_SIZE],
+            buffer: MODE::new_buffer(),
             size,
         }
     }
+}
 
+impl<DI> DisplayCore<DI, Buffered> {
     pub fn set_pixel(&mut self, x: u8, y: u8, on: bool) {
         if x >= self.size.width || y >= self.size.height {
             return;
@@ -129,23 +161,10 @@ impl<DI> DisplayCore<DI> {
     }
 }
 
-impl<DI: DisplayInterface> DisplayCore<DI> {
+impl<DI: DisplayInterface, MODE: DisplayBufferMode> DisplayCore<DI, MODE> {
     pub fn send_command(&mut self, cmd: Command) -> Result<(), DisplayError> {
         let (bytes, len) = cmd.bytes();
         self.interface.send_command(&bytes[..len])
-    }
-
-    pub fn flush(&mut self) -> Result<(), DisplayError> {
-        self.send_command(Command::SetColumnAddress {
-            start: 0,
-            end: self.size.width - 1,
-        })?;
-        self.send_command(Command::SetPageAddress {
-            start: 0,
-            end: self.size.pages() - 1,
-        })?;
-        let len = self.size.width as usize * self.size.pages() as usize;
-        self.interface.send_data(&self.buffer[..len])
     }
 
     pub fn display_on(&mut self, on: bool) -> Result<(), DisplayError> {
@@ -205,25 +224,25 @@ impl<DI: DisplayInterface> DisplayCore<DI> {
     }
 }
 
-impl<DI: AsyncDisplayInterface> DisplayCore<DI> {
+impl<DI: DisplayInterface> DisplayCore<DI, Buffered> {
+    pub fn flush(&mut self) -> Result<(), DisplayError> {
+        self.send_command(Command::SetColumnAddress {
+            start: 0,
+            end: self.size.width - 1,
+        })?;
+        self.send_command(Command::SetPageAddress {
+            start: 0,
+            end: self.size.pages() - 1,
+        })?;
+        let len = self.size.width as usize * self.size.pages() as usize;
+        self.interface.send_data(&self.buffer[..len])
+    }
+}
+
+impl<DI: AsyncDisplayInterface, MODE: DisplayBufferMode> DisplayCore<DI, MODE> {
     pub async fn send_command_async(&mut self, cmd: Command) -> Result<(), DisplayError> {
         let (bytes, len) = cmd.bytes();
         self.interface.send_command(&bytes[..len]).await
-    }
-
-    pub async fn flush_async(&mut self) -> Result<(), DisplayError> {
-        self.send_command_async(Command::SetColumnAddress {
-            start: 0,
-            end: self.size.width - 1,
-        })
-        .await?;
-        self.send_command_async(Command::SetPageAddress {
-            start: 0,
-            end: self.size.pages() - 1,
-        })
-        .await?;
-        let len = self.size.width as usize * self.size.pages() as usize;
-        self.interface.send_data(&self.buffer[..len]).await
     }
 
     pub async fn display_on_async(&mut self, on: bool) -> Result<(), DisplayError> {
@@ -291,5 +310,22 @@ impl<DI: AsyncDisplayInterface> DisplayCore<DI> {
             self.send_command_async(Command::DeactivateScroll).await?;
         }
         Ok(())
+    }
+}
+
+impl<DI: AsyncDisplayInterface> DisplayCore<DI, Buffered> {
+    pub async fn flush_async(&mut self) -> Result<(), DisplayError> {
+        self.send_command_async(Command::SetColumnAddress {
+            start: 0,
+            end: self.size.width - 1,
+        })
+        .await?;
+        self.send_command_async(Command::SetPageAddress {
+            start: 0,
+            end: self.size.pages() - 1,
+        })
+        .await?;
+        let len = self.size.width as usize * self.size.pages() as usize;
+        self.interface.send_data(&self.buffer[..len]).await
     }
 }
