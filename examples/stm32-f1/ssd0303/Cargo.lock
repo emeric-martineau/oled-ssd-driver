@@ -297,6 +297,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "rtic-monotonic"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb8b0b822d1a366470b9cea83a1d4e788392db763539dc4ba022bcc787fece82"
+
+[[package]]
 name = "rustc_version"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -380,6 +386,7 @@ dependencies = [
  "fugit",
  "fugit-timer",
  "nb 1.1.0",
+ "rtic-monotonic",
  "stm32-usbd",
  "stm32f1",
  "vcell",

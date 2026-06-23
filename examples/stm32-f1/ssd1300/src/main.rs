@@ -28,21 +28,23 @@ use embedded_hal_bus::spi::ExclusiveDevice;
 use oled_ssd_driver::{SpiInterface, Ssd1300};
 use panic_halt as _;
 use stm32f1xx_hal::{pac, prelude::*, spi, spi::Spi};
+use stm32f1xx_hal::rcc::Config;
 
 #[entry]
 fn main() -> ! {
     let dp = pac::Peripherals::take().unwrap();
 
     let mut flash = dp.FLASH.constrain();
-    let rcc = dp.RCC.constrain();
-    let clocks = rcc.cfgr.freeze(&mut flash.acr);
+    let mut rcc = dp
+        .RCC
+        .freeze(Config::hsi().adcclk(2.MHz()), &mut flash.acr);
 
-    let mut gpioa = dp.GPIOA.split();
-    let mut gpiob = dp.GPIOB.split();
+    let mut gpioa = dp.GPIOA.split(&mut rcc);
+    let mut gpiob = dp.GPIOB.split(&mut rcc);
 
     // SPI1 pins
     let sck = gpioa.pa5.into_alternate_push_pull(&mut gpioa.crl);
-    let miso = gpioa.pa6; // not used but required by HAL
+    let miso = gpioa.pa6;
     let mosi = gpioa.pa7.into_alternate_push_pull(&mut gpioa.crl);
 
     // CS and D/C pins
@@ -56,19 +58,18 @@ fn main() -> ! {
     res.set_high();
     cortex_m::asm::delay(72_000);
 
-    let spi = Spi::spi1(
+    let spi = Spi::new(
         dp.SPI1,
-        (sck, miso, mosi),
-        &mut gpioa.crl,
+        (Some(sck), Some(miso), Some(mosi)),
         spi::Mode {
             polarity: spi::Polarity::IdleLow,
             phase: spi::Phase::CaptureOnFirstTransition,
         },
         8.MHz(),
-        &clocks,
+        &mut rcc,
     );
 
-    let spi_device = ExclusiveDevice::new_no_delay(spi, cs);
+    let spi_device = ExclusiveDevice::new_no_delay(spi, cs).unwrap();
     let interface = SpiInterface::new(spi_device, dc);
     let mut display = Ssd1300::new(interface);
 

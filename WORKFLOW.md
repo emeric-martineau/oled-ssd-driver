@@ -18,7 +18,7 @@
 4. **Trait impl** — Ensure new functionality integrates with `embedded-hal` / `embedded-graphics` traits.
 5. **Test** — Add unit tests, run `cargo test` and `cargo clippy -- -D warnings`.
 6. **Example**
-  — Update examples if the public API changed and compile only esp32 example it with `cargo build`.
-  — For new example, compile only esp32 example it with `cargo build`.
-  - After compile, remove `target` folder of example and the root `target/` folder.
+  — Update examples if the public API changed and compile both esp32 and std32 examples it with `cargo build`.
+  — For new example, compile both esp32 and stm32 examples it with `cargo build`.
+  - After compile, remove `target` folder of examples and the root `target/` folder.
 7. **Commit** — Use a conventional commit message.

@@ -23,40 +23,40 @@ use embedded_graphics::{
 use oled_ssd_driver::{I2cInterface, Ssd1320, DEFAULT_I2C_ADDRESS};
 use panic_halt as _;
 use stm32f1xx_hal::{
-    i2c::{BlockingI2c, Mode},
+    i2c::Mode,
     pac,
     prelude::*,
 };
+use stm32f1xx_hal::rcc::Config;
 
 #[entry]
 fn main() -> ! {
     let dp = pac::Peripherals::take().unwrap();
-    let cp = cortex_m::Peripherals::take().unwrap();
 
     let mut flash = dp.FLASH.constrain();
-    let rcc = dp.RCC.constrain();
-    let clocks = rcc.cfgr.freeze(&mut flash.acr);
+    let mut rcc = dp
+        .RCC
+        .freeze(Config::hsi().adcclk(2.MHz()), &mut flash.acr);
 
-    let mut afio = dp.AFIO.constrain();
-    let mut gpiob = dp.GPIOB.split();
+    let mut gpiob = dp.GPIOB.split(&mut rcc);
 
     let scl = gpiob.pb6.into_alternate_open_drain(&mut gpiob.crl);
     let sda = gpiob.pb7.into_alternate_open_drain(&mut gpiob.crl);
 
-    let i2c = BlockingI2c::i2c1(
-        dp.I2C1,
-        (scl, sda),
-        &mut afio.mapr,
-        Mode::Fast {
-            frequency: 400_000.Hz(),
-            duty_cycle: stm32f1xx_hal::i2c::DutyCycle::Ratio2to1,
-        },
-        clocks,
-        1000,
-        10,
-        1000,
-        1000,
-    );
+    let i2c = dp
+        .I2C1
+        .blocking_i2c(
+            (scl, sda),
+            Mode::Fast {
+                frequency: 400.kHz(),
+                duty_cycle: stm32f1xx_hal::i2c::DutyCycle::Ratio2to1,
+            },
+            &mut rcc,
+            1000,
+            10,
+            1000,
+            1000,
+        );
 
     let interface = I2cInterface::new(i2c, DEFAULT_I2C_ADDRESS);
     let mut display = Ssd1320::new(interface);
