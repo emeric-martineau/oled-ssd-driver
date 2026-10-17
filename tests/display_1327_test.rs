@@ -143,7 +143,7 @@ fn test_1327_init_remap() {
     display.init(&Default::default()).unwrap();
     let cmds = &display.release().commands;
     let remap = cmds.iter().find(|c| c.len() >= 2 && c[0] == 0xA0).unwrap();
-    assert_eq!(remap[1], 0x00); // all disabled by default
+    assert_eq!(remap[1], 0x51); // column remap, COM remap, and COM split enabled
 }
 
 #[test]

@@ -76,11 +76,11 @@ pub struct InitConfig {
 impl Default for InitConfig {
     fn default() -> Self {
         Self {
-            column_remap: false,
+            column_remap: true,
             nibble_remap: false,
             vertical_address_increment: false,
-            com_remap: false,
-            com_split_odd_even: false,
+            com_remap: true,
+            com_split_odd_even: true,
             display_on: true,
             display_offset: 0,
             display_start_line: 0,
