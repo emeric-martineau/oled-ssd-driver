@@ -51,7 +51,7 @@ fn main() -> ! {
         .unwrap();
 
     // Draw a diagonal line (medium gray)
-    Line::new(Point::new(0, 20), Point::new(127, 127))
+    Line::new(Point::new(0, 20), Point::new(127, 97))
         .into_styled(PrimitiveStyle::with_stroke(Gray4::new(0x0A), 1))
         .draw(&mut display)
         .unwrap();
