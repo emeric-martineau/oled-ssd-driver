@@ -63,21 +63,37 @@ fn main() -> ! {
     // Draw a 16x16 bitmap image (Rust gear icon, 1bpp, 2 bytes per row)
     #[rustfmt::skip]
     const RUST_ICON: &[u8] = &[
+        // Line 1
         0b0000_0110, 0b0110_0000,
+        // Line 2
         0b0000_0110, 0b0110_0000,
+        // Line 3
         0b0011_1111, 0b1111_1100,
+        // Line 4
         0b0111_1111, 0b1111_1110,
+        // Line 5
         0b0110_0000, 0b0000_0110,
+        // Line 6
         0b1110_0111, 0b1110_0111,
+        // Line 7
         0b1100_0100, 0b0010_0011,
+        // Line 8
         0b1100_0111, 0b1110_0011,
+        // Line 9
         0b1100_0100, 0b0000_0011,
+        // Line 10
         0b1100_0100, 0b0000_0011,
+        // Line 11
         0b1110_0000, 0b0000_0111,
+        // Line 12
         0b0110_0000, 0b0000_0110,
+        // Line 13
         0b0111_1111, 0b1111_1110,
+        // Line 14
         0b0011_1111, 0b1111_1100,
+        // Line 15
         0b0000_0110, 0b0110_0000,
+        // Line 16
         0b0000_0110, 0b0110_0000,
     ];
     let raw_image = ImageRaw::<BinaryColor>::new(RUST_ICON, 16);
