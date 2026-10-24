@@ -50,7 +50,7 @@ pub use ssd1306b::{
 pub use ssd1307::Ssd1307;
 pub use ssd1309::{Ssd1309, VcomhLevel1309};
 pub use ssd1312::{
-    ChargePumpVoltage1312, IrefSetting1312, ScrollInterval1312, Ssd1312, VcomhLevel1312,
+    ChargePumpVoltage1312, IrefSetting1312, ScrollInterval1312, Ssd1312, VcomhLevel1312, InitConfig1312
 };
 pub use ssd1315::{
     ChargePumpVoltage1315, FadeMode1315, IrefSetting1315, ScrollInterval1315, Ssd1315,
