@@ -1,23 +1,7 @@
-/// SSD1362 display size configuration.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct DisplaySize1362 {
-    pub width: u16,
-    pub height: u8,
-}
-
-impl DisplaySize1362 {
-    pub const fn new(width: u16, height: u8) -> Self {
-        Self { width, height }
-    }
-
-    /// Number of column addresses (each column = 2 pixels at 4bpp)
-    pub(crate) const fn columns(&self) -> u8 {
-        (self.width / 2) as u8
-    }
-}
+use crate::common::DisplaySize;
 
 /// 256x64 (SSD1362 default)
-pub const SIZE_256X64: DisplaySize1362 = DisplaySize1362::new(256, 64);
+pub const SIZE_256X64: DisplaySize = DisplaySize::new(256, 64);
 
 /// Configuration for SSD1362 display initialization.
 ///

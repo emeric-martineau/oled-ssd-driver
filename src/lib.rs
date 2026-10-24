@@ -50,29 +50,25 @@ pub use ssd1306b::{
 pub use ssd1307::Ssd1307;
 pub use ssd1309::{Ssd1309, VcomhLevel1309};
 pub use ssd1312::{
-    ChargePumpVoltage1312, IrefSetting1312, ScrollInterval1312, Ssd1312, VcomhLevel1312, InitConfig1312
+    ChargePumpVoltage1312, InitConfig1312, IrefSetting1312, ScrollInterval1312, Ssd1312,
+    VcomhLevel1312,
 };
 pub use ssd1315::{
     ChargePumpVoltage1315, FadeMode1315, IrefSetting1315, ScrollInterval1315, Ssd1315,
     VcomhLevel1315,
 };
 pub use ssd1320::{
-    AddressingMode1320, DisplaySize1320, InitConfig as InitConfig1320, IrefSetting1320, Ssd1320,
-    SIZE_160X160,
+    AddressingMode1320, InitConfig as InitConfig1320, IrefSetting1320, Ssd1320, SIZE_160X160,
 };
-pub use ssd1325::{
-    CurrentRange1325, DisplaySize1325, InitConfig as InitConfig1325, Ssd1325, SIZE_128X80,
-};
-pub use ssd1327::{DisplaySize1327, InitConfig as InitConfig1327, Ssd1327, SIZE_128X128};
-pub use ssd1331::{DisplaySize1331, InitConfig as InitConfig1331, Ssd1331, SIZE_96X64};
-pub use ssd1332::{
-    DisplaySize1332, InitConfig as InitConfig1332, Ssd1332, SIZE_96X64 as SIZE_96X64_1332,
-};
+pub use ssd1325::{CurrentRange1325, InitConfig as InitConfig1325, Ssd1325, SIZE_128X80};
+pub use ssd1327::{InitConfig as InitConfig1327, Ssd1327, SIZE_128X128};
+pub use ssd1331::{InitConfig as InitConfig1331, Ssd1331, SIZE_96X64};
+pub use ssd1332::{InitConfig as InitConfig1332, Ssd1332, SIZE_96X64 as SIZE_96X64_1332};
 pub use ssd1351::{
-    DisplaySize1351, InitConfig as InitConfig1351, Ssd1351, SIZE_128X128 as SIZE_128X128_COLOR,
+    InitConfig as InitConfig1351, Ssd1351, SIZE_128X128 as SIZE_128X128_COLOR,
     SIZE_128X96 as SIZE_128X96_COLOR,
 };
-pub use ssd1362::{DisplaySize1362, InitConfig as InitConfig1362, Ssd1362, SIZE_256X64};
+pub use ssd1362::{InitConfig as InitConfig1362, Ssd1362, SIZE_256X64};
 
 /// Default display width (128 pixels)
 pub const WIDTH: u8 = 128;

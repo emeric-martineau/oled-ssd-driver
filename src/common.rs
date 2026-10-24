@@ -39,12 +39,12 @@ impl DisplayBufferMode for Unbuffered {
 /// Display dimensions configuration.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DisplaySize {
-    pub width: u8,
+    pub width: u16,
     pub height: u8,
 }
 
 impl DisplaySize {
-    pub const fn new(width: u8, height: u8) -> Self {
+    pub const fn new(width: u16, height: u8) -> Self {
         Self { width, height }
     }
 
@@ -137,7 +137,7 @@ impl<DI, MODE: DisplayBufferMode> DisplayCore<DI, MODE> {
 
 impl<DI> DisplayCore<DI, Buffered> {
     pub fn set_pixel(&mut self, x: u8, y: u8, on: bool) {
-        if x >= self.size.width || y >= self.size.height {
+        if u16::from(x) >= self.size.width || y >= self.size.height {
             return;
         }
         let page = (y / 8) as usize;
@@ -228,7 +228,7 @@ impl<DI: DisplayInterface> DisplayCore<DI, Buffered> {
     pub fn flush(&mut self) -> Result<(), DisplayError> {
         self.send_command(Command::SetColumnAddress {
             start: 0,
-            end: self.size.width - 1,
+            end: (self.size.width - 1) as u8,
         })?;
         self.send_command(Command::SetPageAddress {
             start: 0,
@@ -317,7 +317,7 @@ impl<DI: AsyncDisplayInterface> DisplayCore<DI, Buffered> {
     pub async fn flush_async(&mut self) -> Result<(), DisplayError> {
         self.send_command_async(Command::SetColumnAddress {
             start: 0,
-            end: self.size.width - 1,
+            end: (self.size.width - 1) as u8,
         })
         .await?;
         self.send_command_async(Command::SetPageAddress {

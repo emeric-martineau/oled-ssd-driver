@@ -102,7 +102,9 @@ impl<DI: DisplayInterface> Ssd0303<DI, Buffered> {
             self.send_raw_command(&[0x10])?;
             let start = page as usize * width as usize;
             let end = start + width as usize;
-            self.core.interface.send_data(&self.core.buffer[start..end])?;
+            self.core
+                .interface
+                .send_data(&self.core.buffer[start..end])?;
         }
         Ok(())
     }
@@ -153,7 +155,13 @@ impl<DI: DisplayInterface> Ssd0303<DI, Buffered> {
             return Err(DisplayError::InvalidArgument);
         }
         self.send_raw_command(&[0x2E])?;
-        self.send_raw_command(&[0x26, num_columns & 0x07, start_page & 0x07, interval as u8, end_page & 0x07])?;
+        self.send_raw_command(&[
+            0x26,
+            num_columns & 0x07,
+            start_page & 0x07,
+            interval as u8,
+            end_page & 0x07,
+        ])?;
         self.send_raw_command(&[0x2F])
     }
 
@@ -221,7 +229,13 @@ impl<DI: DisplayInterface> Ssd0303<DI, Unbuffered> {
             return Err(DisplayError::InvalidArgument);
         }
         self.send_raw_command(&[0x2E])?;
-        self.send_raw_command(&[0x26, num_columns & 0x07, start_page & 0x07, interval as u8, end_page & 0x07])?;
+        self.send_raw_command(&[
+            0x26,
+            num_columns & 0x07,
+            start_page & 0x07,
+            interval as u8,
+            end_page & 0x07,
+        ])?;
         self.send_raw_command(&[0x2F])
     }
 
@@ -253,14 +267,18 @@ impl<DI: AsyncDisplayInterface> Ssd0303<DI, Buffered> {
             self.send_raw_command_async(&[0x10]).await?;
             let start = page as usize * width as usize;
             let end = start + width as usize;
-            self.core.interface.send_data(&self.core.buffer[start..end]).await?;
+            self.core
+                .interface
+                .send_data(&self.core.buffer[start..end])
+                .await?;
         }
         Ok(())
     }
 
     /// SSD0303 §8 — Async display ON/OFF
     pub async fn display_on_async(&mut self, on: bool) -> Result<(), DisplayError> {
-        self.send_raw_command_async(&[if on { 0xAF } else { 0xAE }]).await
+        self.send_raw_command_async(&[if on { 0xAF } else { 0xAE }])
+            .await
     }
 
     /// SSD0303 §8 — Async set contrast
@@ -270,7 +288,8 @@ impl<DI: AsyncDisplayInterface> Ssd0303<DI, Buffered> {
 
     /// SSD0303 §8 — Async set inverse
     pub async fn set_inverse_async(&mut self, inverse: bool) -> Result<(), DisplayError> {
-        self.send_raw_command_async(&[if inverse { 0xA7 } else { 0xA6 }]).await
+        self.send_raw_command_async(&[if inverse { 0xA7 } else { 0xA6 }])
+            .await
     }
 }
 
@@ -288,7 +307,8 @@ impl<DI: AsyncDisplayInterface> Ssd0303<DI, Unbuffered> {
 
     /// SSD0303 §8 — Async display ON/OFF
     pub async fn display_on_async(&mut self, on: bool) -> Result<(), DisplayError> {
-        self.send_raw_command_async(&[if on { 0xAF } else { 0xAE }]).await
+        self.send_raw_command_async(&[if on { 0xAF } else { 0xAE }])
+            .await
     }
 
     /// SSD0303 §8 — Async set contrast
@@ -298,7 +318,8 @@ impl<DI: AsyncDisplayInterface> Ssd0303<DI, Unbuffered> {
 
     /// SSD0303 §8 — Async set inverse
     pub async fn set_inverse_async(&mut self, inverse: bool) -> Result<(), DisplayError> {
-        self.send_raw_command_async(&[if inverse { 0xA7 } else { 0xA6 }]).await
+        self.send_raw_command_async(&[if inverse { 0xA7 } else { 0xA6 }])
+            .await
     }
 }
 
@@ -334,14 +355,24 @@ fn ssd0303_init_commands(
     config: &InitConfig,
 ) -> Result<(), DisplayError> {
     interface.send_command(&[0xAE])?;
-    interface.send_command(&[0xD5, (config.osc_freq & 0x0F) << 4 | (config.clock_divide_ratio & 0x0F)])?;
+    interface.send_command(&[
+        0xD5,
+        (config.osc_freq & 0x0F) << 4 | (config.clock_divide_ratio & 0x0F),
+    ])?;
     interface.send_command(&[0xA8, (config.multiplex_ratio - 1) & 0x3F])?;
     interface.send_command(&[0xD3, config.display_offset & 0x3F])?;
     interface.send_command(&[0x40 | (config.display_start_line & 0x3F)])?;
     interface.send_command(&[0xAD, if config.dc_dc_enable { 0x01 } else { 0x00 }])?;
     interface.send_command(&[if config.segment_remap { 0xA1 } else { 0xA0 }])?;
     interface.send_command(&[if config.com_scan_reversed { 0xC8 } else { 0xC0 }])?;
-    interface.send_command(&[0xDA, if config.com_pin_alternative { 0x12 } else { 0x02 }])?;
+    interface.send_command(&[
+        0xDA,
+        if config.com_pin_alternative {
+            0x12
+        } else {
+            0x02
+        },
+    ])?;
     interface.send_command(&[0x81, config.contrast])?;
     interface.send_command(&[0xD9, (config.phase2 & 0x0F) << 4 | (config.phase1 & 0x0F)])?;
     interface.send_command(&[0xDB, config.vcomh & 0x7F])?;
@@ -361,19 +392,51 @@ async fn ssd0303_init_commands_async(
     config: &InitConfig,
 ) -> Result<(), DisplayError> {
     interface.send_command(&[0xAE]).await?;
-    interface.send_command(&[0xD5, (config.osc_freq & 0x0F) << 4 | (config.clock_divide_ratio & 0x0F)]).await?;
-    interface.send_command(&[0xA8, (config.multiplex_ratio - 1) & 0x3F]).await?;
-    interface.send_command(&[0xD3, config.display_offset & 0x3F]).await?;
-    interface.send_command(&[0x40 | (config.display_start_line & 0x3F)]).await?;
-    interface.send_command(&[0xAD, if config.dc_dc_enable { 0x01 } else { 0x00 }]).await?;
-    interface.send_command(&[if config.segment_remap { 0xA1 } else { 0xA0 }]).await?;
-    interface.send_command(&[if config.com_scan_reversed { 0xC8 } else { 0xC0 }]).await?;
-    interface.send_command(&[0xDA, if config.com_pin_alternative { 0x12 } else { 0x02 }]).await?;
+    interface
+        .send_command(&[
+            0xD5,
+            (config.osc_freq & 0x0F) << 4 | (config.clock_divide_ratio & 0x0F),
+        ])
+        .await?;
+    interface
+        .send_command(&[0xA8, (config.multiplex_ratio - 1) & 0x3F])
+        .await?;
+    interface
+        .send_command(&[0xD3, config.display_offset & 0x3F])
+        .await?;
+    interface
+        .send_command(&[0x40 | (config.display_start_line & 0x3F)])
+        .await?;
+    interface
+        .send_command(&[0xAD, if config.dc_dc_enable { 0x01 } else { 0x00 }])
+        .await?;
+    interface
+        .send_command(&[if config.segment_remap { 0xA1 } else { 0xA0 }])
+        .await?;
+    interface
+        .send_command(&[if config.com_scan_reversed { 0xC8 } else { 0xC0 }])
+        .await?;
+    interface
+        .send_command(&[
+            0xDA,
+            if config.com_pin_alternative {
+                0x12
+            } else {
+                0x02
+            },
+        ])
+        .await?;
     interface.send_command(&[0x81, config.contrast]).await?;
-    interface.send_command(&[0xD9, (config.phase2 & 0x0F) << 4 | (config.phase1 & 0x0F)]).await?;
+    interface
+        .send_command(&[0xD9, (config.phase2 & 0x0F) << 4 | (config.phase1 & 0x0F)])
+        .await?;
     interface.send_command(&[0xDB, config.vcomh & 0x7F]).await?;
-    interface.send_command(&[if config.entire_display_on { 0xA5 } else { 0xA4 }]).await?;
-    interface.send_command(&[if config.inverse_display { 0xA7 } else { 0xA6 }]).await?;
+    interface
+        .send_command(&[if config.entire_display_on { 0xA5 } else { 0xA4 }])
+        .await?;
+    interface
+        .send_command(&[if config.inverse_display { 0xA7 } else { 0xA6 }])
+        .await?;
     if config.deactivate_scroll {
         interface.send_command(&[0x2E]).await?;
     }

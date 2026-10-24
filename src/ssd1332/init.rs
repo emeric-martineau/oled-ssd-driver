@@ -1,18 +1,7 @@
-/// SSD1332 display size configuration.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct DisplaySize1332 {
-    pub width: u8,
-    pub height: u8,
-}
-
-impl DisplaySize1332 {
-    pub const fn new(width: u8, height: u8) -> Self {
-        Self { width, height }
-    }
-}
+use crate::common::DisplaySize;
 
 /// 96x64 (SSD1332 default)
-pub const SIZE_96X64: DisplaySize1332 = DisplaySize1332::new(96, 64);
+pub const SIZE_96X64: DisplaySize = DisplaySize::new(96, 64);
 
 /// Configuration for SSD1332 display initialization.
 ///

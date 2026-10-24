@@ -5,7 +5,8 @@ use embedded_graphics_core::{
     Pixel,
 };
 
-use super::init::{DisplaySize1351, InitConfig, SIZE_128X128};
+use super::init::{InitConfig, SIZE_128X128};
+use crate::common::DisplaySize;
 use crate::common::{Buffered, Unbuffered};
 use crate::error::DisplayError;
 use crate::interface::{AsyncDisplayInterface, DisplayInterface};
@@ -39,7 +40,7 @@ impl Ssd1351BufferMode for Unbuffered {
 pub struct Ssd1351<DI, MODE: Ssd1351BufferMode = Buffered> {
     interface: DI,
     buffer: MODE::Buffer,
-    size: DisplaySize1351,
+    size: DisplaySize,
 }
 
 impl<DI> Ssd1351<DI, Buffered> {
@@ -52,7 +53,7 @@ impl<DI> Ssd1351<DI, Buffered> {
         }
     }
 
-    pub fn new_with_size(interface: DI, size: DisplaySize1351) -> Self {
+    pub fn new_with_size(interface: DI, size: DisplaySize) -> Self {
         Self {
             interface,
             buffer: [0u8; BUFFER_SIZE_1351],
@@ -66,7 +67,7 @@ impl<DI> Ssd1351<DI, Buffered> {
 
     /// SSD1351 §8.3 — Set a pixel in the internal framebuffer (big-endian RGB565).
     pub fn set_pixel(&mut self, x: u8, y: u8, color: Rgb565) {
-        if x >= self.size.width || y >= self.size.height {
+        if u16::from(x) >= self.size.width || y >= self.size.height {
             return;
         }
         let idx = (y as usize * self.size.width as usize + x as usize) * 2;
@@ -85,7 +86,7 @@ impl<DI> Ssd1351<DI, Buffered> {
         &self.buffer[..len]
     }
 
-    pub fn size_config(&self) -> DisplaySize1351 {
+    pub fn size_config(&self) -> DisplaySize {
         self.size
     }
 }
@@ -100,7 +101,7 @@ impl<DI> Ssd1351<DI, Unbuffered> {
         }
     }
 
-    pub fn new_unbuffered_with_size(interface: DI, size: DisplaySize1351) -> Self {
+    pub fn new_unbuffered_with_size(interface: DI, size: DisplaySize) -> Self {
         Self {
             interface,
             buffer: (),
@@ -112,7 +113,7 @@ impl<DI> Ssd1351<DI, Unbuffered> {
         self.interface
     }
 
-    pub fn size_config(&self) -> DisplaySize1351 {
+    pub fn size_config(&self) -> DisplaySize {
         self.size
     }
 }
@@ -127,7 +128,8 @@ impl<DI: DisplayInterface> Ssd1351<DI, Buffered> {
 
     pub fn flush(&mut self) -> Result<(), DisplayError> {
         self.interface.send_command(&[0x15])?;
-        self.interface.send_data(&[0x00, self.size.width - 1])?;
+        self.interface
+            .send_data(&[0x00, (self.size.width - 1) as u8])?;
         self.interface.send_command(&[0x75])?;
         self.interface.send_data(&[0x00, self.size.height - 1])?;
         self.interface.send_command(&[0x5C])?;
@@ -150,7 +152,8 @@ impl<DI: DisplayInterface> Ssd1351<DI, Buffered> {
     }
 
     pub fn set_inverse(&mut self, inverse: bool) -> Result<(), DisplayError> {
-        self.interface.send_command(&[if inverse { 0xA7 } else { 0xA6 }])
+        self.interface
+            .send_command(&[if inverse { 0xA7 } else { 0xA6 }])
     }
 
     pub fn set_vcomh(&mut self, level: u8) -> Result<(), DisplayError> {
@@ -187,7 +190,8 @@ impl<DI: DisplayInterface> Ssd1351<DI, Unbuffered> {
     }
 
     pub fn set_inverse(&mut self, inverse: bool) -> Result<(), DisplayError> {
-        self.interface.send_command(&[if inverse { 0xA7 } else { 0xA6 }])
+        self.interface
+            .send_command(&[if inverse { 0xA7 } else { 0xA6 }])
     }
 
     pub fn set_vcomh(&mut self, level: u8) -> Result<(), DisplayError> {
@@ -210,19 +214,30 @@ impl<DI: AsyncDisplayInterface> Ssd1351<DI, Buffered> {
 
     pub async fn flush_async(&mut self) -> Result<(), DisplayError> {
         self.interface.send_command(&[0x15]).await?;
-        self.interface.send_data(&[0x00, self.size.width - 1]).await?;
+        self.interface
+            .send_data(&[0x00, (self.size.width - 1) as u8])
+            .await?;
         self.interface.send_command(&[0x75]).await?;
-        self.interface.send_data(&[0x00, self.size.height - 1]).await?;
+        self.interface
+            .send_data(&[0x00, self.size.height - 1])
+            .await?;
         self.interface.send_command(&[0x5C]).await?;
         let len = self.size.width as usize * self.size.height as usize * 2;
         self.interface.send_data(&self.buffer[..len]).await
     }
 
     pub async fn display_on_async(&mut self, on: bool) -> Result<(), DisplayError> {
-        self.interface.send_command(&[if on { 0xAF } else { 0xAE }]).await
+        self.interface
+            .send_command(&[if on { 0xAF } else { 0xAE }])
+            .await
     }
 
-    pub async fn set_contrast_abc_async(&mut self, a: u8, b: u8, c: u8) -> Result<(), DisplayError> {
+    pub async fn set_contrast_abc_async(
+        &mut self,
+        a: u8,
+        b: u8,
+        c: u8,
+    ) -> Result<(), DisplayError> {
         self.interface.send_command(&[0xC1]).await?;
         self.interface.send_data(&[a, b, c]).await
     }
@@ -233,7 +248,9 @@ impl<DI: AsyncDisplayInterface> Ssd1351<DI, Buffered> {
     }
 
     pub async fn set_inverse_async(&mut self, inverse: bool) -> Result<(), DisplayError> {
-        self.interface.send_command(&[if inverse { 0xA7 } else { 0xA6 }]).await
+        self.interface
+            .send_command(&[if inverse { 0xA7 } else { 0xA6 }])
+            .await
     }
 }
 
@@ -245,10 +262,17 @@ impl<DI: AsyncDisplayInterface> Ssd1351<DI, Unbuffered> {
     }
 
     pub async fn display_on_async(&mut self, on: bool) -> Result<(), DisplayError> {
-        self.interface.send_command(&[if on { 0xAF } else { 0xAE }]).await
+        self.interface
+            .send_command(&[if on { 0xAF } else { 0xAE }])
+            .await
     }
 
-    pub async fn set_contrast_abc_async(&mut self, a: u8, b: u8, c: u8) -> Result<(), DisplayError> {
+    pub async fn set_contrast_abc_async(
+        &mut self,
+        a: u8,
+        b: u8,
+        c: u8,
+    ) -> Result<(), DisplayError> {
         self.interface.send_command(&[0xC1]).await?;
         self.interface.send_data(&[a, b, c]).await
     }
@@ -259,7 +283,9 @@ impl<DI: AsyncDisplayInterface> Ssd1351<DI, Unbuffered> {
     }
 
     pub async fn set_inverse_async(&mut self, inverse: bool) -> Result<(), DisplayError> {
-        self.interface.send_command(&[if inverse { 0xA7 } else { 0xA6 }]).await
+        self.interface
+            .send_command(&[if inverse { 0xA7 } else { 0xA6 }])
+            .await
     }
 }
 
@@ -323,7 +349,7 @@ impl<DI: DisplayInterface> DrawTarget for Ssd1351<DI, Unbuffered> {
 
 fn ssd1351_init_commands(
     interface: &mut impl DisplayInterface,
-    size: &DisplaySize1351,
+    size: &DisplaySize,
     config: &InitConfig,
 ) -> Result<(), DisplayError> {
     interface.send_command(&[0xFD])?;
@@ -338,7 +364,7 @@ fn ssd1351_init_commands(
     interface.send_command(&[0xA0])?;
     interface.send_data(&[config.remap_byte()])?;
     interface.send_command(&[0x15])?;
-    interface.send_data(&[0x00, size.width - 1])?;
+    interface.send_data(&[0x00, (size.width - 1) as u8])?;
     interface.send_command(&[0x75])?;
     interface.send_data(&[0x00, size.height - 1])?;
     interface.send_command(&[0xA1])?;
@@ -373,7 +399,7 @@ fn ssd1351_init_commands(
 
 async fn ssd1351_init_commands_async(
     interface: &mut impl AsyncDisplayInterface,
-    size: &DisplaySize1351,
+    size: &DisplaySize,
     config: &InitConfig,
 ) -> Result<(), DisplayError> {
     interface.send_command(&[0xFD]).await?;
@@ -382,39 +408,57 @@ async fn ssd1351_init_commands_async(
     interface.send_data(&[0xB1]).await?;
     interface.send_command(&[0xAE]).await?;
     interface.send_command(&[0xB3]).await?;
-    interface.send_data(&[(config.osc_freq & 0x0F) << 4 | (config.clock_divider & 0x0F)]).await?;
+    interface
+        .send_data(&[(config.osc_freq & 0x0F) << 4 | (config.clock_divider & 0x0F)])
+        .await?;
     interface.send_command(&[0xCA]).await?;
     interface.send_data(&[size.height - 1]).await?;
     interface.send_command(&[0xA0]).await?;
     interface.send_data(&[config.remap_byte()]).await?;
     interface.send_command(&[0x15]).await?;
-    interface.send_data(&[0x00, size.width - 1]).await?;
+    interface.send_data(&[0x00, (size.width - 1) as u8]).await?;
     interface.send_command(&[0x75]).await?;
     interface.send_data(&[0x00, size.height - 1]).await?;
     interface.send_command(&[0xA1]).await?;
-    interface.send_data(&[config.display_start_line & 0x7F]).await?;
+    interface
+        .send_data(&[config.display_start_line & 0x7F])
+        .await?;
     interface.send_command(&[0xA2]).await?;
     interface.send_data(&[config.display_offset & 0x7F]).await?;
     interface.send_command(&[0xB5]).await?;
     interface.send_data(&[0x00]).await?;
     interface.send_command(&[0xAB]).await?;
-    interface.send_data(&[if config.internal_vdd { 0x01 } else { 0x00 }]).await?;
+    interface
+        .send_data(&[if config.internal_vdd { 0x01 } else { 0x00 }])
+        .await?;
     interface.send_command(&[0xB1]).await?;
-    interface.send_data(&[(config.phase2 & 0x0F) << 4 | (config.phase1 & 0x0F)]).await?;
+    interface
+        .send_data(&[(config.phase2 & 0x0F) << 4 | (config.phase1 & 0x0F)])
+        .await?;
     interface.send_command(&[0xB2]).await?;
     interface.send_data(&[0xA4, 0x00, 0x00]).await?;
     interface.send_command(&[0xC1]).await?;
-    interface.send_data(&[config.contrast_a, config.contrast_b, config.contrast_c]).await?;
+    interface
+        .send_data(&[config.contrast_a, config.contrast_b, config.contrast_c])
+        .await?;
     interface.send_command(&[0xC7]).await?;
-    interface.send_data(&[config.master_contrast & 0x0F]).await?;
+    interface
+        .send_data(&[config.master_contrast & 0x0F])
+        .await?;
     interface.send_command(&[0xB9]).await?;
     interface.send_command(&[0xBB]).await?;
-    interface.send_data(&[config.precharge_voltage & 0x1F]).await?;
+    interface
+        .send_data(&[config.precharge_voltage & 0x1F])
+        .await?;
     interface.send_command(&[0xBE]).await?;
     interface.send_data(&[config.vcomh & 0x07]).await?;
     interface.send_command(&[0xB6]).await?;
-    interface.send_data(&[config.second_precharge & 0x0F]).await?;
-    interface.send_command(&[if config.inverse_display { 0xA7 } else { 0xA6 }]).await?;
+    interface
+        .send_data(&[config.second_precharge & 0x0F])
+        .await?;
+    interface
+        .send_command(&[if config.inverse_display { 0xA7 } else { 0xA6 }])
+        .await?;
     if config.display_on {
         interface.send_command(&[0xAF]).await?;
     }

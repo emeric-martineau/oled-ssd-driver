@@ -146,7 +146,7 @@ impl<DI: DisplayInterface> Ch1115<DI, Buffered> {
             &mut self.core.interface,
             config,
             self.core.size.pages(),
-            self.core.size.width,
+            self.core.size.width as u8,
         )
     }
 
@@ -160,14 +160,20 @@ impl<DI: DisplayInterface> Ch1115<DI, Buffered> {
             self.send_raw_command(&[0x10])?;
             let start = page as usize * width as usize;
             let end = start + width as usize;
-            self.core.interface.send_data(&self.core.buffer[start..end])?;
+            self.core
+                .interface
+                .send_data(&self.core.buffer[start..end])?;
         }
         Ok(())
     }
 
     /// CH1115 §18 — Turn the display panel ON or OFF (sleep mode)
     pub fn display_on(&mut self, on: bool) -> Result<(), DisplayError> {
-        if on { self.send_raw_command(&[0xAF]) } else { self.send_raw_command(&[0xAE]) }
+        if on {
+            self.send_raw_command(&[0xAF])
+        } else {
+            self.send_raw_command(&[0xAE])
+        }
     }
 
     /// CH1115 §10 — Set contrast (0-255)
@@ -177,7 +183,11 @@ impl<DI: DisplayInterface> Ch1115<DI, Buffered> {
 
     /// CH1115 §15 — Invert the display (swap ON/OFF pixels)
     pub fn set_inverse(&mut self, inverse: bool) -> Result<(), DisplayError> {
-        if inverse { self.send_raw_command(&[0xA7]) } else { self.send_raw_command(&[0xA6]) }
+        if inverse {
+            self.send_raw_command(&[0xA7])
+        } else {
+            self.send_raw_command(&[0xA6])
+        }
     }
 
     /// CH1115 §8 — Set pump output voltage
@@ -247,7 +257,7 @@ impl<DI: DisplayInterface> Ch1115<DI, Buffered> {
         start_column: u8,
         end_column: u8,
     ) -> Result<(), DisplayError> {
-        let max_col = self.core.size.width - 1;
+        let max_col = (self.core.size.width - 1) as u8;
         if start_column > max_col || end_column > max_col || end_column < start_column {
             return Err(DisplayError::InvalidArgument);
         }
@@ -299,7 +309,11 @@ impl<DI: DisplayInterface> Ch1115<DI, Buffered> {
 
     /// CH1115 §23 — Set adaptive power save mode
     pub fn set_adaptive_power_save(&mut self, enable: bool) -> Result<(), DisplayError> {
-        if enable { self.send_raw_command(&[0xD7]) } else { self.send_raw_command(&[0xD6]) }
+        if enable {
+            self.send_raw_command(&[0xD7])
+        } else {
+            self.send_raw_command(&[0xD6])
+        }
     }
 }
 
@@ -316,13 +330,17 @@ impl<DI: DisplayInterface> Ch1115<DI, Unbuffered> {
             &mut self.core.interface,
             config,
             self.core.size.pages(),
-            self.core.size.width,
+            self.core.size.width as u8,
         )
     }
 
     /// CH1115 §18 — Turn the display panel ON or OFF (sleep mode)
     pub fn display_on(&mut self, on: bool) -> Result<(), DisplayError> {
-        if on { self.send_raw_command(&[0xAF]) } else { self.send_raw_command(&[0xAE]) }
+        if on {
+            self.send_raw_command(&[0xAF])
+        } else {
+            self.send_raw_command(&[0xAE])
+        }
     }
 
     /// CH1115 §10 — Set contrast (0-255)
@@ -332,7 +350,11 @@ impl<DI: DisplayInterface> Ch1115<DI, Unbuffered> {
 
     /// CH1115 §15 — Invert the display (swap ON/OFF pixels)
     pub fn set_inverse(&mut self, inverse: bool) -> Result<(), DisplayError> {
-        if inverse { self.send_raw_command(&[0xA7]) } else { self.send_raw_command(&[0xA6]) }
+        if inverse {
+            self.send_raw_command(&[0xA7])
+        } else {
+            self.send_raw_command(&[0xA6])
+        }
     }
 
     /// CH1115 §8 — Set pump output voltage
@@ -401,7 +423,7 @@ impl<DI: DisplayInterface> Ch1115<DI, Unbuffered> {
         start_column: u8,
         end_column: u8,
     ) -> Result<(), DisplayError> {
-        let max_col = self.core.size.width - 1;
+        let max_col = (self.core.size.width - 1) as u8;
         if start_column > max_col || end_column > max_col || end_column < start_column {
             return Err(DisplayError::InvalidArgument);
         }
@@ -453,7 +475,11 @@ impl<DI: DisplayInterface> Ch1115<DI, Unbuffered> {
 
     /// CH1115 §23 — Set adaptive power save mode
     pub fn set_adaptive_power_save(&mut self, enable: bool) -> Result<(), DisplayError> {
-        if enable { self.send_raw_command(&[0xD7]) } else { self.send_raw_command(&[0xD6]) }
+        if enable {
+            self.send_raw_command(&[0xD7])
+        } else {
+            self.send_raw_command(&[0xD6])
+        }
     }
 }
 
@@ -469,8 +495,10 @@ impl<DI: AsyncDisplayInterface> Ch1115<DI, Buffered> {
         self.send_raw_command_async(&[0xAE]).await?;
         self.send_raw_command_async(&[0xD5, 0x50]).await?;
         self.send_raw_command_async(&[0xA8, 0x3F]).await?;
-        self.send_raw_command_async(&[0xD3, config.display_offset & 0x3F]).await?;
-        self.send_raw_command_async(&[0x40 | (config.display_start_line & 0x3F)]).await?;
+        self.send_raw_command_async(&[0xD3, config.display_offset & 0x3F])
+            .await?;
+        self.send_raw_command_async(&[0x40 | (config.display_start_line & 0x3F)])
+            .await?;
         self.send_raw_command_async(&[0xAD, 0x8B]).await?;
         if config.segment_remap {
             self.send_raw_command_async(&[0xA1]).await?;
@@ -483,10 +511,12 @@ impl<DI: AsyncDisplayInterface> Ch1115<DI, Buffered> {
             self.send_raw_command_async(&[0xC0]).await?;
         }
         self.send_raw_command_async(&[0xA2]).await?;
-        self.send_raw_command_async(&[0x81, config.contrast]).await?;
+        self.send_raw_command_async(&[0x81, config.contrast])
+            .await?;
         self.send_raw_command_async(&[0xD9, 0x66]).await?;
         self.send_raw_command_async(&[0xDB, 0x35]).await?;
-        self.send_raw_command_async(&[PumpVoltageCh1115::V8_0 as u8]).await?;
+        self.send_raw_command_async(&[PumpVoltageCh1115::V8_0 as u8])
+            .await?;
         if config.entire_display_on {
             self.send_raw_command_async(&[0xA5]).await?;
         } else {
@@ -516,14 +546,21 @@ impl<DI: AsyncDisplayInterface> Ch1115<DI, Buffered> {
             self.send_raw_command_async(&[0x10]).await?;
             let start = page as usize * width as usize;
             let end = start + width as usize;
-            self.core.interface.send_data(&self.core.buffer[start..end]).await?;
+            self.core
+                .interface
+                .send_data(&self.core.buffer[start..end])
+                .await?;
         }
         Ok(())
     }
 
     /// CH1115 §18 — Async display ON/OFF
     pub async fn display_on_async(&mut self, on: bool) -> Result<(), DisplayError> {
-        if on { self.send_raw_command_async(&[0xAF]).await } else { self.send_raw_command_async(&[0xAE]).await }
+        if on {
+            self.send_raw_command_async(&[0xAF]).await
+        } else {
+            self.send_raw_command_async(&[0xAE]).await
+        }
     }
 
     /// CH1115 §10 — Async set contrast
@@ -533,7 +570,11 @@ impl<DI: AsyncDisplayInterface> Ch1115<DI, Buffered> {
 
     /// CH1115 §15 — Async set inverse
     pub async fn set_inverse_async(&mut self, inverse: bool) -> Result<(), DisplayError> {
-        if inverse { self.send_raw_command_async(&[0xA7]).await } else { self.send_raw_command_async(&[0xA6]).await }
+        if inverse {
+            self.send_raw_command_async(&[0xA7]).await
+        } else {
+            self.send_raw_command_async(&[0xA6]).await
+        }
     }
 
     /// CH1115 §8 — Async set pump output voltage
@@ -554,7 +595,8 @@ impl<DI: AsyncDisplayInterface> Ch1115<DI, Buffered> {
             IrefSourceCh1115::External => 0x00,
             IrefSourceCh1115::Internal => 0x04,
         };
-        self.send_raw_command_async(&[0x82, d_bit | (resistor as u8)]).await
+        self.send_raw_command_async(&[0x82, d_bit | (resistor as u8)])
+            .await
     }
 }
 
@@ -570,8 +612,10 @@ impl<DI: AsyncDisplayInterface> Ch1115<DI, Unbuffered> {
         self.send_raw_command_async(&[0xAE]).await?;
         self.send_raw_command_async(&[0xD5, 0x50]).await?;
         self.send_raw_command_async(&[0xA8, 0x3F]).await?;
-        self.send_raw_command_async(&[0xD3, config.display_offset & 0x3F]).await?;
-        self.send_raw_command_async(&[0x40 | (config.display_start_line & 0x3F)]).await?;
+        self.send_raw_command_async(&[0xD3, config.display_offset & 0x3F])
+            .await?;
+        self.send_raw_command_async(&[0x40 | (config.display_start_line & 0x3F)])
+            .await?;
         self.send_raw_command_async(&[0xAD, 0x8B]).await?;
         if config.segment_remap {
             self.send_raw_command_async(&[0xA1]).await?;
@@ -584,10 +628,12 @@ impl<DI: AsyncDisplayInterface> Ch1115<DI, Unbuffered> {
             self.send_raw_command_async(&[0xC0]).await?;
         }
         self.send_raw_command_async(&[0xA2]).await?;
-        self.send_raw_command_async(&[0x81, config.contrast]).await?;
+        self.send_raw_command_async(&[0x81, config.contrast])
+            .await?;
         self.send_raw_command_async(&[0xD9, 0x66]).await?;
         self.send_raw_command_async(&[0xDB, 0x35]).await?;
-        self.send_raw_command_async(&[PumpVoltageCh1115::V8_0 as u8]).await?;
+        self.send_raw_command_async(&[PumpVoltageCh1115::V8_0 as u8])
+            .await?;
         if config.entire_display_on {
             self.send_raw_command_async(&[0xA5]).await?;
         } else {
@@ -609,7 +655,11 @@ impl<DI: AsyncDisplayInterface> Ch1115<DI, Unbuffered> {
 
     /// CH1115 §18 — Async display ON/OFF
     pub async fn display_on_async(&mut self, on: bool) -> Result<(), DisplayError> {
-        if on { self.send_raw_command_async(&[0xAF]).await } else { self.send_raw_command_async(&[0xAE]).await }
+        if on {
+            self.send_raw_command_async(&[0xAF]).await
+        } else {
+            self.send_raw_command_async(&[0xAE]).await
+        }
     }
 
     /// CH1115 §10 — Async set contrast
@@ -619,7 +669,11 @@ impl<DI: AsyncDisplayInterface> Ch1115<DI, Unbuffered> {
 
     /// CH1115 §15 — Async set inverse
     pub async fn set_inverse_async(&mut self, inverse: bool) -> Result<(), DisplayError> {
-        if inverse { self.send_raw_command_async(&[0xA7]).await } else { self.send_raw_command_async(&[0xA6]).await }
+        if inverse {
+            self.send_raw_command_async(&[0xA7]).await
+        } else {
+            self.send_raw_command_async(&[0xA6]).await
+        }
     }
 
     /// CH1115 §8 — Async set pump output voltage
@@ -640,7 +694,8 @@ impl<DI: AsyncDisplayInterface> Ch1115<DI, Unbuffered> {
             IrefSourceCh1115::External => 0x00,
             IrefSourceCh1115::Internal => 0x04,
         };
-        self.send_raw_command_async(&[0x82, d_bit | (resistor as u8)]).await
+        self.send_raw_command_async(&[0x82, d_bit | (resistor as u8)])
+            .await
     }
 }
 

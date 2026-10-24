@@ -173,7 +173,7 @@ impl<DI: DisplayInterface> Ssd1315<DI, Buffered> {
         end_column: u8,
     ) -> Result<(), DisplayError> {
         let max_page = self.core.size.pages() - 1;
-        let max_col = self.core.size.width - 1;
+        let max_col = (self.core.size.width - 1) as u8;
         if start_page > max_page || end_page > max_page || end_page < start_page {
             return Err(DisplayError::InvalidArgument);
         }
@@ -208,7 +208,7 @@ impl<DI: DisplayInterface> Ssd1315<DI, Buffered> {
         end_column: u8,
     ) -> Result<(), DisplayError> {
         let max_page = self.core.size.pages() - 1;
-        let max_col = self.core.size.width - 1;
+        let max_col = (self.core.size.width - 1) as u8;
         if start_page > max_page || end_page > max_page || end_page < start_page {
             return Err(DisplayError::InvalidArgument);
         }
@@ -317,7 +317,7 @@ impl<DI: DisplayInterface> Ssd1315<DI, Unbuffered> {
         end_column: u8,
     ) -> Result<(), DisplayError> {
         let max_page = self.core.size.pages() - 1;
-        let max_col = self.core.size.width - 1;
+        let max_col = (self.core.size.width - 1) as u8;
         if start_page > max_page || end_page > max_page || end_page < start_page {
             return Err(DisplayError::InvalidArgument);
         }
@@ -352,7 +352,7 @@ impl<DI: DisplayInterface> Ssd1315<DI, Unbuffered> {
         end_column: u8,
     ) -> Result<(), DisplayError> {
         let max_page = self.core.size.pages() - 1;
-        let max_col = self.core.size.width - 1;
+        let max_col = (self.core.size.width - 1) as u8;
         if start_page > max_page || end_page > max_page || end_page < start_page {
             return Err(DisplayError::InvalidArgument);
         }

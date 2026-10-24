@@ -1,23 +1,7 @@
-/// SSD1327 display size configuration.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct DisplaySize1327 {
-    pub width: u8,
-    pub height: u8,
-}
-
-impl DisplaySize1327 {
-    pub const fn new(width: u8, height: u8) -> Self {
-        Self { width, height }
-    }
-
-    /// Number of column addresses (each column = 2 pixels at 4bpp)
-    pub(crate) const fn columns(&self) -> u8 {
-        self.width / 2
-    }
-}
+use crate::common::DisplaySize;
 
 /// 128x128 (SSD1327 default)
-pub const SIZE_128X128: DisplaySize1327 = DisplaySize1327::new(128, 128);
+pub const SIZE_128X128: DisplaySize = DisplaySize::new(128, 128);
 
 /// Configuration for SSD1327 display initialization.
 ///

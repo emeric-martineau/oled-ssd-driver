@@ -10,26 +10,10 @@ pub enum CurrentRange1325 {
     Full = 0x87,
 }
 
-/// SSD1325 display size configuration.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct DisplaySize1325 {
-    pub width: u8,
-    pub height: u8,
-}
-
-impl DisplaySize1325 {
-    pub const fn new(width: u8, height: u8) -> Self {
-        Self { width, height }
-    }
-
-    /// Number of column addresses (each column = 2 pixels at 4bpp)
-    pub(crate) const fn columns(&self) -> u8 {
-        self.width / 2
-    }
-}
+use crate::common::DisplaySize;
 
 /// 128x80 (SSD1325 default)
-pub const SIZE_128X80: DisplaySize1325 = DisplaySize1325::new(128, 80);
+pub const SIZE_128X80: DisplaySize = DisplaySize::new(128, 80);
 
 /// Configuration for SSD1325 display initialization.
 ///

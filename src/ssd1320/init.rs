@@ -16,26 +16,10 @@ pub enum IrefSetting1320 {
     Internal = 0x10,
 }
 
-/// SSD1320 display size configuration.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct DisplaySize1320 {
-    pub width: u8,
-    pub height: u8,
-}
-
-impl DisplaySize1320 {
-    pub const fn new(width: u8, height: u8) -> Self {
-        Self { width, height }
-    }
-
-    /// Number of column addresses (each column = 2 pixels at 4bpp)
-    pub(crate) const fn columns(&self) -> u8 {
-        self.width / 2
-    }
-}
+use crate::common::DisplaySize;
 
 /// 160x160 (SSD1320 default)
-pub const SIZE_160X160: DisplaySize1320 = DisplaySize1320::new(160, 160);
+pub const SIZE_160X160: DisplaySize = DisplaySize::new(160, 160);
 
 /// Configuration for SSD1320 display initialization.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

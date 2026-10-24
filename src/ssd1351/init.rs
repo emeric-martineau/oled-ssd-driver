@@ -1,21 +1,10 @@
-/// SSD1351 display size configuration.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct DisplaySize1351 {
-    pub width: u8,
-    pub height: u8,
-}
-
-impl DisplaySize1351 {
-    pub const fn new(width: u8, height: u8) -> Self {
-        Self { width, height }
-    }
-}
+use crate::common::DisplaySize;
 
 /// 128x128 (SSD1351 default)
-pub const SIZE_128X128: DisplaySize1351 = DisplaySize1351::new(128, 128);
+pub const SIZE_128X128: DisplaySize = DisplaySize::new(128, 128);
 
 /// 128x96 (common module variant)
-pub const SIZE_128X96: DisplaySize1351 = DisplaySize1351::new(128, 96);
+pub const SIZE_128X96: DisplaySize = DisplaySize::new(128, 96);
 
 /// Configuration for SSD1351 display initialization.
 ///
