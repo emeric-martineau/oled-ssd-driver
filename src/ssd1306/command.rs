@@ -34,9 +34,9 @@ pub enum ScrollInterval {
 /// SSD1306 §10.1.18 — COM pins hardware configuration
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ComPinConfig {
-    /// A[4]: false = sequential, true = alternative
+    /// `A[4]`: false = sequential, true = alternative
     pub alternative: bool,
-    /// A[5]: enable COM left/right remap
+    /// `A[5]`: enable COM left/right remap
     pub left_right_remap: bool,
 }
 

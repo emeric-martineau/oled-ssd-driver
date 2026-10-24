@@ -67,10 +67,10 @@ pub struct InitConfig {
     /// false = normal, true = inverse.
     pub inverse_display: bool,
     /// SSD1332 §9 — Master Configuration (ADh).
-    /// A[0]: false = external VCC, true = internal booster (RESET).
+    /// `A[0]`: false = external VCC, true = internal booster (RESET).
     pub internal_booster: bool,
     /// SSD1332 §9 — Master Configuration (ADh).
-    /// A[2]: false = external VP supply, true = internal VP (RESET).
+    /// `A[2]`: false = external VP supply, true = internal VP (RESET).
     pub internal_vp: bool,
 }
 
