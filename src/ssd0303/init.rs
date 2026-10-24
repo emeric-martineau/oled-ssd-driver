@@ -1,7 +1,7 @@
 use crate::common::DisplaySize;
 
 /// 132x64 (SSD0303 default)
-pub const SIZE_132X64_0303: DisplaySize = DisplaySize::new(132, 64);
+pub const DEFAULT_DISPLAY_SIZE: DisplaySize = DisplaySize::new(132, 64);
 
 /// SSD0303 §8 — Horizontal scroll time interval (in frames)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

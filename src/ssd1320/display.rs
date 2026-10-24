@@ -5,7 +5,7 @@ use embedded_graphics_core::{
     Pixel,
 };
 
-use super::init::{InitConfig, IrefSetting1320, SIZE_160X160};
+use super::init::{InitConfig, IrefSetting1320, DEFAULT_DISPLAY_SIZE};
 use crate::common::DisplaySize;
 use crate::common::{Buffered, Unbuffered};
 use crate::error::DisplayError;
@@ -48,7 +48,7 @@ impl<DI> Ssd1320<DI, Buffered> {
         Self {
             interface,
             buffer: [0u8; BUFFER_SIZE_1320],
-            size: SIZE_160X160,
+            size: DEFAULT_DISPLAY_SIZE,
         }
     }
 
@@ -104,7 +104,7 @@ impl<DI> Ssd1320<DI, Unbuffered> {
         Self {
             interface,
             buffer: (),
-            size: SIZE_160X160,
+            size: DEFAULT_DISPLAY_SIZE,
         }
     }
 

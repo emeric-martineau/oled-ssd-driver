@@ -1,10 +1,10 @@
 use crate::common::DisplaySize;
 
 /// 128x128 (SSD1351 default)
-pub const SIZE_128X128: DisplaySize = DisplaySize::new(128, 128);
+pub const DEFAULT_DISPLAY_SIZE_H128: DisplaySize = DisplaySize::new(128, 128);
 
 /// 128x96 (common module variant)
-pub const SIZE_128X96: DisplaySize = DisplaySize::new(128, 96);
+pub const DEFAULT_DISPLAY_SIZE_H96: DisplaySize = DisplaySize::new(128, 96);
 
 /// Configuration for SSD1351 display initialization.
 ///

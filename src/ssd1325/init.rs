@@ -13,7 +13,7 @@ pub enum CurrentRange1325 {
 use crate::common::DisplaySize;
 
 /// 128x80 (SSD1325 default)
-pub const SIZE_128X80: DisplaySize = DisplaySize::new(128, 80);
+pub const DEFAULT_DISPLAY_SIZE: DisplaySize = DisplaySize::new(128, 80);
 
 /// Configuration for SSD1325 display initialization.
 ///

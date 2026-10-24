@@ -1,3 +1,4 @@
+use super::init::DEFAULT_DISPLAY_SIZE;
 use embedded_graphics_core::{
     draw_target::DrawTarget,
     geometry::{OriginDimensions, Size},
@@ -7,7 +8,7 @@ use embedded_graphics_core::{
 
 use super::command::{ChargePumpVoltage, FadeMode, IrefSetting, ScrollIntervalB, VcomhLevelB};
 use crate::common::{
-    Buffered, DisplayBufferMode, DisplayCore, DisplaySize, InitConfig, Unbuffered, SIZE_128X64,
+    Buffered, DisplayBufferMode, DisplayCore, DisplaySize, InitConfig, Unbuffered,
 };
 use crate::error::DisplayError;
 use crate::interface::{AsyncDisplayInterface, DisplayInterface};
@@ -26,7 +27,7 @@ impl<DI> Ssd1306b<DI, Buffered> {
     /// Create a new SSD1306B driver with default 128x64 display size (buffered).
     pub fn new(interface: DI) -> Self {
         Self {
-            core: DisplayCore::new(interface, SIZE_128X64),
+            core: DisplayCore::new(interface, DEFAULT_DISPLAY_SIZE),
         }
     }
 
@@ -63,7 +64,7 @@ impl<DI> Ssd1306b<DI, Unbuffered> {
     /// Create a new SSD1306B driver in unbuffered mode with default 128x64 display size.
     pub fn new_unbuffered(interface: DI) -> Self {
         Self {
-            core: DisplayCore::new(interface, SIZE_128X64),
+            core: DisplayCore::new(interface, DEFAULT_DISPLAY_SIZE),
         }
     }
 

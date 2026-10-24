@@ -32,8 +32,7 @@ pub use ch1116::{
     ScrollModeCh1116,
 };
 pub use common::{
-    Buffered, DisplaySize, InitConfig, Unbuffered, SIZE_104X48, SIZE_128X32, SIZE_128X39,
-    SIZE_128X64, SIZE_132X64, SIZE_64X48, SIZE_96X16,
+    Buffered, DisplaySize, InitConfig, Unbuffered,
 };
 pub use error::DisplayError;
 pub use interface::{
@@ -57,18 +56,13 @@ pub use ssd1315::{
     ChargePumpVoltage1315, FadeMode1315, IrefSetting1315, ScrollInterval1315, Ssd1315,
     VcomhLevel1315,
 };
-pub use ssd1320::{
-    AddressingMode1320, InitConfig as InitConfig1320, IrefSetting1320, Ssd1320, SIZE_160X160,
-};
-pub use ssd1325::{CurrentRange1325, InitConfig as InitConfig1325, Ssd1325, SIZE_128X80};
-pub use ssd1327::{InitConfig as InitConfig1327, Ssd1327, SIZE_128X128};
-pub use ssd1331::{InitConfig as InitConfig1331, Ssd1331, SIZE_96X64};
-pub use ssd1332::{InitConfig as InitConfig1332, Ssd1332, SIZE_96X64 as SIZE_96X64_1332};
-pub use ssd1351::{
-    InitConfig as InitConfig1351, Ssd1351, SIZE_128X128 as SIZE_128X128_COLOR,
-    SIZE_128X96 as SIZE_128X96_COLOR,
-};
-pub use ssd1362::{InitConfig as InitConfig1362, Ssd1362, SIZE_256X64};
+pub use ssd1320::{AddressingMode1320, InitConfig as InitConfig1320, IrefSetting1320, Ssd1320};
+pub use ssd1325::{CurrentRange1325, InitConfig as InitConfig1325, Ssd1325};
+pub use ssd1327::{InitConfig as InitConfig1327, Ssd1327};
+pub use ssd1331::{InitConfig as InitConfig1331, Ssd1331};
+pub use ssd1332::{InitConfig as InitConfig1332, Ssd1332};
+pub use ssd1351::{InitConfig as InitConfig1351, Ssd1351, DEFAULT_DISPLAY_SIZE_H128, DEFAULT_DISPLAY_SIZE_H96};
+pub use ssd1362::{InitConfig as InitConfig1362, Ssd1362};
 
 /// Default display width (128 pixels)
 pub const WIDTH: u8 = 128;

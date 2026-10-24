@@ -4,7 +4,7 @@ use embedded_graphics_core::{
     pixelcolor::BinaryColor,
     Pixel,
 };
-use oled_ssd_driver::{DisplaySize, Ssd1306, Ssd1306b, SIZE_128X32, SIZE_128X64, SIZE_96X16};
+use oled_ssd_driver::{DisplaySize, Ssd1306, Ssd1306b, SIZE_128X32, SIZE_96X16};
 
 struct MockInterface {
     commands: Vec<Vec<u8>>,
@@ -97,7 +97,10 @@ fn test_128x32_init_com_pin_sequential() {
 
 #[test]
 fn test_128x64_init_com_pin_alternative() {
-    let mut display = Ssd1306::new_with_size(MockInterface::new(), SIZE_128X64);
+    let mut display = Ssd1306::new_with_size(
+        MockInterface::new(),
+        oled_ssd_driver::ssd1306::DEFAULT_DISPLAY_SIZE,
+    );
     display.init(&Default::default()).unwrap();
 
     let iface = display.release();

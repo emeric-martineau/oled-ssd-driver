@@ -53,21 +53,6 @@ impl DisplaySize {
     }
 }
 
-/// 132x64 (CH1116 default)
-pub const SIZE_132X64: DisplaySize = DisplaySize::new(132, 64);
-/// 128x64 (default)
-pub const SIZE_128X64: DisplaySize = DisplaySize::new(128, 64);
-/// 128x39 (SSD1307 default)
-pub const SIZE_128X39: DisplaySize = DisplaySize::new(128, 39);
-/// 128x32
-pub const SIZE_128X32: DisplaySize = DisplaySize::new(128, 32);
-/// 96x16
-pub const SIZE_96X16: DisplaySize = DisplaySize::new(96, 16);
-/// 64x48
-pub const SIZE_64X48: DisplaySize = DisplaySize::new(64, 48);
-/// 104x48 (SSD1300 default)
-pub const SIZE_104X48: DisplaySize = DisplaySize::new(104, 48);
-
 /// Configuration for display initialization.
 ///
 /// Controls orientation, addressing, contrast, and whether the display is turned on after init.

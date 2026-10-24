@@ -19,7 +19,7 @@ pub enum IrefSetting1320 {
 use crate::common::DisplaySize;
 
 /// 160x160 (SSD1320 default)
-pub const SIZE_160X160: DisplaySize = DisplaySize::new(160, 160);
+pub const DEFAULT_DISPLAY_SIZE: DisplaySize = DisplaySize::new(160, 160);
 
 /// Configuration for SSD1320 display initialization.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

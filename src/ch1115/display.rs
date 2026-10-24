@@ -1,3 +1,4 @@
+use super::init::DEFAULT_DISPLAY_SIZE;
 use embedded_graphics_core::{
     draw_target::DrawTarget,
     geometry::{OriginDimensions, Size},
@@ -10,7 +11,7 @@ use super::command::{
     ScrollDirectionCh1115, ScrollIntervalCh1115, ScrollModeCh1115, SegPadsConfigCh1115,
 };
 use crate::common::{
-    Buffered, DisplayBufferMode, DisplayCore, DisplaySize, InitConfig, Unbuffered, SIZE_128X64,
+    Buffered, DisplayBufferMode, DisplayCore, DisplaySize, InitConfig, Unbuffered,
 };
 use crate::error::DisplayError;
 use crate::interface::{AsyncDisplayInterface, DisplayInterface};
@@ -28,7 +29,7 @@ impl<DI> Ch1115<DI, Buffered> {
     /// Create a new CH1115 driver with default 128x64 display size (buffered).
     pub fn new(interface: DI) -> Self {
         Self {
-            core: DisplayCore::new(interface, SIZE_128X64),
+            core: DisplayCore::new(interface, DEFAULT_DISPLAY_SIZE),
         }
     }
 
@@ -65,7 +66,7 @@ impl<DI> Ch1115<DI, Unbuffered> {
     /// Create a new CH1115 driver in unbuffered mode with default 128x64 display size.
     pub fn new_unbuffered(interface: DI) -> Self {
         Self {
-            core: DisplayCore::new(interface, SIZE_128X64),
+            core: DisplayCore::new(interface, DEFAULT_DISPLAY_SIZE),
         }
     }
 

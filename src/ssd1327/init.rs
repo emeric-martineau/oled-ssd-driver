@@ -1,7 +1,7 @@
 use crate::common::DisplaySize;
 
 /// 128x128 (SSD1327 default)
-pub const SIZE_128X128: DisplaySize = DisplaySize::new(128, 128);
+pub const DEFAULT_DISPLAY_SIZE: DisplaySize = DisplaySize::new(128, 128);
 
 /// Configuration for SSD1327 display initialization.
 ///

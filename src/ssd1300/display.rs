@@ -5,7 +5,7 @@ use embedded_graphics_core::{
     Pixel,
 };
 
-use super::init::{InitConfig, ScrollInterval1300, SIZE_104X48};
+use super::init::{InitConfig, ScrollInterval1300, DEFAULT_DISPLAY_SIZE};
 use crate::common::{Buffered, DisplayBufferMode, DisplayCore, DisplaySize, Unbuffered};
 use crate::error::DisplayError;
 use crate::interface::{AsyncDisplayInterface, DisplayInterface};
@@ -23,7 +23,7 @@ impl<DI> Ssd1300<DI, Buffered> {
     /// Create a new SSD1300 driver with default 104x48 display size (buffered).
     pub fn new(interface: DI) -> Self {
         Self {
-            core: DisplayCore::new(interface, SIZE_104X48),
+            core: DisplayCore::new(interface, DEFAULT_DISPLAY_SIZE),
         }
     }
 
@@ -60,7 +60,7 @@ impl<DI> Ssd1300<DI, Unbuffered> {
     /// Create a new SSD1300 driver in unbuffered mode with default 104x48 display size.
     pub fn new_unbuffered(interface: DI) -> Self {
         Self {
-            core: DisplayCore::new(interface, SIZE_104X48),
+            core: DisplayCore::new(interface, DEFAULT_DISPLAY_SIZE),
         }
     }
 

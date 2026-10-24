@@ -1,7 +1,7 @@
 use crate::common::DisplaySize;
 
 /// 256x64 (SSD1362 default)
-pub const SIZE_256X64: DisplaySize = DisplaySize::new(256, 64);
+pub const DEFAULT_DISPLAY_SIZE: DisplaySize = DisplaySize::new(256, 64);
 
 /// Configuration for SSD1362 display initialization.
 ///

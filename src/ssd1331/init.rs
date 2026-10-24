@@ -1,7 +1,7 @@
 use crate::common::DisplaySize;
 
 /// 96x64 (SSD1331 default)
-pub const SIZE_96X64: DisplaySize = DisplaySize::new(96, 64);
+pub const DEFAULT_DISPLAY_SIZE: DisplaySize = DisplaySize::new(96, 64);
 
 /// Configuration for SSD1331 display initialization.
 ///

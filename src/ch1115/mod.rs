@@ -1,5 +1,6 @@
 pub(crate) mod command;
 mod display;
+mod init;
 
 pub use command::{
     BreathingBrightnessCh1115, ComScanDirectionCh1115, IrefResistorCh1115, IrefSourceCh1115,
@@ -7,3 +8,5 @@ pub use command::{
     SegPadsConfigCh1115,
 };
 pub use display::Ch1115;
+
+pub use init::DEFAULT_DISPLAY_SIZE;
