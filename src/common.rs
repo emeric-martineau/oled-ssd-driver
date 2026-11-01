@@ -222,6 +222,22 @@ impl<DI: DisplayInterface> DisplayCore<DI, Buffered> {
         let len = self.size.width as usize * self.size.pages() as usize;
         self.interface.send_data(&self.buffer[..len])
     }
+
+    /// Write the framebuffer one page at a time using the controller's page-mode cursor.
+    /// This is shared by controllers that do not reliably honor horizontal addressing.
+    pub fn flush_pages(&mut self) -> Result<(), DisplayError> {
+        let pages = self.size.pages();
+        let width = self.size.width as usize;
+        for page in 0..pages {
+            self.interface.send_command(&[0xB0 | page])?;
+            self.interface.send_command(&[0x00])?;
+            self.interface.send_command(&[0x10])?;
+            let start = page as usize * width;
+            self.interface
+                .send_data(&self.buffer[start..start + width])?;
+        }
+        Ok(())
+    }
 }
 
 impl<DI: AsyncDisplayInterface, MODE: DisplayBufferMode> DisplayCore<DI, MODE> {
@@ -312,5 +328,20 @@ impl<DI: AsyncDisplayInterface> DisplayCore<DI, Buffered> {
         .await?;
         let len = self.size.width as usize * self.size.pages() as usize;
         self.interface.send_data(&self.buffer[..len]).await
+    }
+
+    pub async fn flush_pages_async(&mut self) -> Result<(), DisplayError> {
+        let pages = self.size.pages();
+        let width = self.size.width as usize;
+        for page in 0..pages {
+            self.interface.send_command(&[0xB0 | page]).await?;
+            self.interface.send_command(&[0x00]).await?;
+            self.interface.send_command(&[0x10]).await?;
+            let start = page as usize * width;
+            self.interface
+                .send_data(&self.buffer[start..start + width])
+                .await?;
+        }
+        Ok(())
     }
 }

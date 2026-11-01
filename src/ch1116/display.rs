@@ -144,19 +144,7 @@ impl<DI: DisplayInterface> Ch1116<DI, Buffered> {
 
     /// CH1116 — Flush the internal framebuffer to the display GDDRAM (page mode).
     pub fn flush(&mut self) -> Result<(), DisplayError> {
-        let pages = self.core.size.pages();
-        let width = self.core.size.width;
-        for page in 0..pages {
-            self.send_raw_command(&[0xB0 | page])?;
-            self.send_raw_command(&[0x00])?;
-            self.send_raw_command(&[0x10])?;
-            let start = page as usize * width as usize;
-            let end = start + width as usize;
-            self.core
-                .interface
-                .send_data(&self.core.buffer[start..end])?;
-        }
-        Ok(())
+        self.core.flush_pages()
     }
 
     /// CH1116 §17 — Turn the display panel ON or OFF (sleep mode)
@@ -488,20 +476,7 @@ impl<DI: AsyncDisplayInterface> Ch1116<DI, Buffered> {
 
     /// CH1116 — Async flush of framebuffer to display GDDRAM (page mode).
     pub async fn flush_async(&mut self) -> Result<(), DisplayError> {
-        let pages = self.core.size.pages();
-        let width = self.core.size.width;
-        for page in 0..pages {
-            self.send_raw_command_async(&[0xB0 | page]).await?;
-            self.send_raw_command_async(&[0x00]).await?;
-            self.send_raw_command_async(&[0x10]).await?;
-            let start = page as usize * width as usize;
-            let end = start + width as usize;
-            self.core
-                .interface
-                .send_data(&self.core.buffer[start..end])
-                .await?;
-        }
-        Ok(())
+        self.core.flush_pages_async().await
     }
 
     /// CH1116 §17 — Async display ON/OFF

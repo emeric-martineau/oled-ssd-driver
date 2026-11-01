@@ -93,7 +93,22 @@ impl<DI: DisplayInterface> Ssd1309<DI, Buffered> {
 
     /// SSD1309 §8.8 — Power ON initialization sequence.
     pub fn init(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
-        self.core.init_common(config)?;
+        let mut core_config = *config;
+        core_config.vcomh_deselect = None;
+        self.core.init_common(&core_config)?;
+        // Match the timing used by the working CH1116 page-mode sequence.
+        self.core.interface.send_command(&[0xD5, 0x50])?;
+        self.core.interface.send_command(&[0xD9, 0x66])?;
+        // Use the same page addressing/write path as CH1116 for reliable row coverage.
+        self.core.interface.send_command(&[0x20, 0x02])?;
+        if let Some(level) = config.vcomh_deselect {
+            let level = match level {
+                crate::ssd1306::command::VcomhLevel::V065 => VcomhLevel1309::V064,
+                crate::ssd1306::command::VcomhLevel::V077 => VcomhLevel1309::V078,
+                crate::ssd1306::command::VcomhLevel::V083 => VcomhLevel1309::V084,
+            };
+            self.set_vcomh_deselect(level)?;
+        }
         if config.display_on {
             self.send_command(Command::DisplayOn(true))?;
         }
@@ -102,7 +117,7 @@ impl<DI: DisplayInterface> Ssd1309<DI, Buffered> {
 
     /// Flush the internal framebuffer to the display GDDRAM.
     pub fn flush(&mut self) -> Result<(), DisplayError> {
-        self.core.flush()
+        self.core.flush_pages()
     }
 
     /// SSD1309 §9.1 — Turn the display panel ON or OFF (sleep mode)
@@ -169,7 +184,20 @@ impl<DI: DisplayInterface> Ssd1309<DI, Unbuffered> {
 
     /// SSD1309 §8.8 — Power ON initialization sequence (unbuffered).
     pub fn init(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
-        self.core.init_common(config)?;
+        let mut core_config = *config;
+        core_config.vcomh_deselect = None;
+        self.core.init_common(&core_config)?;
+        self.core.interface.send_command(&[0xD5, 0x50])?;
+        self.core.interface.send_command(&[0xD9, 0x66])?;
+        self.core.interface.send_command(&[0x20, 0x02])?;
+        if let Some(level) = config.vcomh_deselect {
+            let level = match level {
+                crate::ssd1306::command::VcomhLevel::V065 => VcomhLevel1309::V064,
+                crate::ssd1306::command::VcomhLevel::V077 => VcomhLevel1309::V078,
+                crate::ssd1306::command::VcomhLevel::V083 => VcomhLevel1309::V084,
+            };
+            self.set_vcomh_deselect(level)?;
+        }
         if config.display_on {
             self.send_command(Command::DisplayOn(true))?;
         }
@@ -236,7 +264,20 @@ impl<DI: DisplayInterface> Ssd1309<DI, Unbuffered> {
 impl<DI: AsyncDisplayInterface> Ssd1309<DI, Buffered> {
     /// SSD1309 §8.8 — Async power ON initialization sequence.
     pub async fn init_async(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
-        self.core.init_common_async(config).await?;
+        let mut core_config = *config;
+        core_config.vcomh_deselect = None;
+        self.core.init_common_async(&core_config).await?;
+        self.core.interface.send_command(&[0xD5, 0x50]).await?;
+        self.core.interface.send_command(&[0xD9, 0x66]).await?;
+        self.core.interface.send_command(&[0x20, 0x02]).await?;
+        if let Some(level) = config.vcomh_deselect {
+            let level = match level {
+                crate::ssd1306::command::VcomhLevel::V065 => VcomhLevel1309::V064,
+                crate::ssd1306::command::VcomhLevel::V077 => VcomhLevel1309::V078,
+                crate::ssd1306::command::VcomhLevel::V083 => VcomhLevel1309::V084,
+            };
+            self.core.interface.send_command(&[0xDB, level as u8]).await?;
+        }
         if config.display_on {
             self.core
                 .send_command_async(Command::DisplayOn(true))
@@ -247,7 +288,7 @@ impl<DI: AsyncDisplayInterface> Ssd1309<DI, Buffered> {
 
     /// Async flush of framebuffer to display GDDRAM.
     pub async fn flush_async(&mut self) -> Result<(), DisplayError> {
-        self.core.flush_async().await
+        self.core.flush_pages_async().await
     }
 
     /// SSD1309 §9.1 — Async display ON/OFF
@@ -271,7 +312,20 @@ impl<DI: AsyncDisplayInterface> Ssd1309<DI, Buffered> {
 impl<DI: AsyncDisplayInterface> Ssd1309<DI, Unbuffered> {
     /// SSD1309 §8.8 — Async power ON initialization sequence (unbuffered).
     pub async fn init_async(&mut self, config: &InitConfig) -> Result<(), DisplayError> {
-        self.core.init_common_async(config).await?;
+        let mut core_config = *config;
+        core_config.vcomh_deselect = None;
+        self.core.init_common_async(&core_config).await?;
+        self.core.interface.send_command(&[0xD5, 0x50]).await?;
+        self.core.interface.send_command(&[0xD9, 0x66]).await?;
+        if let Some(level) = config.vcomh_deselect {
+            let level = match level {
+                crate::ssd1306::command::VcomhLevel::V065 => VcomhLevel1309::V064,
+                crate::ssd1306::command::VcomhLevel::V077 => VcomhLevel1309::V078,
+                crate::ssd1306::command::VcomhLevel::V083 => VcomhLevel1309::V084,
+            };
+            self.core.interface.send_command(&[0xDB, level as u8]).await?;
+        }
+        self.core.interface.send_command(&[0x20, 0x02]).await?;
         if config.display_on {
             self.core
                 .send_command_async(Command::DisplayOn(true))
