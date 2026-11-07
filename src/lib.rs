@@ -31,9 +31,7 @@ pub use ch1116::{
     IrefSourceCh1116, PumpVoltageCh1116, ScrollDirectionCh1116, ScrollIntervalCh1116,
     ScrollModeCh1116,
 };
-pub use common::{
-    Buffered, DisplaySize, InitConfig, Unbuffered,
-};
+pub use common::{Buffered, DisplaySize, InitConfig, Unbuffered};
 pub use error::DisplayError;
 pub use interface::{
     AsyncDisplayInterface, DisplayInterface, I2cInterface, SpiInterface, DEFAULT_I2C_ADDRESS,
@@ -61,5 +59,7 @@ pub use ssd1325::{CurrentRange1325, InitConfig as InitConfig1325, Ssd1325};
 pub use ssd1327::{InitConfig as InitConfig1327, Ssd1327};
 pub use ssd1331::{InitConfig as InitConfig1331, Ssd1331};
 pub use ssd1332::{InitConfig as InitConfig1332, Ssd1332};
-pub use ssd1351::{InitConfig as InitConfig1351, Ssd1351, DEFAULT_DISPLAY_SIZE_H128, DEFAULT_DISPLAY_SIZE_H96};
+pub use ssd1351::{
+    InitConfig as InitConfig1351, Ssd1351, DEFAULT_DISPLAY_SIZE_H128, DEFAULT_DISPLAY_SIZE_H96,
+};
 pub use ssd1362::{InitConfig as InitConfig1362, Ssd1362};

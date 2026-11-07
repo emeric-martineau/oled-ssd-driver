@@ -276,7 +276,10 @@ impl<DI: AsyncDisplayInterface> Ssd1309<DI, Buffered> {
                 crate::ssd1306::command::VcomhLevel::V077 => VcomhLevel1309::V078,
                 crate::ssd1306::command::VcomhLevel::V083 => VcomhLevel1309::V084,
             };
-            self.core.interface.send_command(&[0xDB, level as u8]).await?;
+            self.core
+                .interface
+                .send_command(&[0xDB, level as u8])
+                .await?;
         }
         if config.display_on {
             self.core
@@ -323,7 +326,10 @@ impl<DI: AsyncDisplayInterface> Ssd1309<DI, Unbuffered> {
                 crate::ssd1306::command::VcomhLevel::V077 => VcomhLevel1309::V078,
                 crate::ssd1306::command::VcomhLevel::V083 => VcomhLevel1309::V084,
             };
-            self.core.interface.send_command(&[0xDB, level as u8]).await?;
+            self.core
+                .interface
+                .send_command(&[0xDB, level as u8])
+                .await?;
         }
         self.core.interface.send_command(&[0x20, 0x02]).await?;
         if config.display_on {
