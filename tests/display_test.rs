@@ -4,7 +4,12 @@ use embedded_graphics_core::{
     pixelcolor::BinaryColor,
     Pixel,
 };
-use oled_ssd_driver::{Ssd1306, HEIGHT, WIDTH};
+use oled_ssd_driver::Ssd1306;
+
+// Default display width (128 pixels)
+pub const WIDTH: u8 = 128;
+// Default display height (64 pixels)
+pub const HEIGHT: u8 = 64;
 
 struct MockInterface {
     commands: Vec<Vec<u8>>,

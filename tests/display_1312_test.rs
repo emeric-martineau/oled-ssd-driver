@@ -6,8 +6,13 @@ use embedded_graphics_core::{
 };
 use oled_ssd_driver::{
     ChargePumpVoltage1312, IrefSetting1312, ScrollDirection, ScrollInterval1312, Ssd1312,
-    VcomhLevel1312, HEIGHT, WIDTH,
+    VcomhLevel1312,
 };
+
+// Default display width (128 pixels)
+pub const WIDTH: u8 = 128;
+// Default display height (64 pixels)
+pub const HEIGHT: u8 = 64;
 
 struct MockInterface {
     commands: Vec<Vec<u8>>,

@@ -3,7 +3,7 @@ use embedded_graphics_core::{
     pixelcolor::Gray4,
     Drawable, Pixel,
 };
-use oled_ssd_driver::{InitConfig1327, Ssd1327, SIZE_128X128};
+use oled_ssd_driver::{ssd1327::DEFAULT_DISPLAY_SIZE, InitConfig1327, Ssd1327};
 
 struct MockInterface {
     commands: Vec<Vec<u8>>,
@@ -40,7 +40,7 @@ fn test_1327_dimensions() {
 #[test]
 fn test_1327_size_config() {
     let display = Ssd1327::new(MockInterface::new());
-    assert_eq!(display.size_config(), SIZE_128X128);
+    assert_eq!(display.size_config(), DEFAULT_DISPLAY_SIZE);
     assert_eq!(display.size_config().width, 128);
     assert_eq!(display.size_config().height, 128);
 }

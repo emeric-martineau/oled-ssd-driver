@@ -63,10 +63,3 @@ pub use ssd1331::{InitConfig as InitConfig1331, Ssd1331};
 pub use ssd1332::{InitConfig as InitConfig1332, Ssd1332};
 pub use ssd1351::{InitConfig as InitConfig1351, Ssd1351, DEFAULT_DISPLAY_SIZE_H128, DEFAULT_DISPLAY_SIZE_H96};
 pub use ssd1362::{InitConfig as InitConfig1362, Ssd1362};
-
-/// Default display width (128 pixels)
-pub const WIDTH: u8 = 128;
-/// Default display height (64 pixels)
-pub const HEIGHT: u8 = 64;
-/// Default number of pages (8 for 64px height)
-pub const PAGES: u8 = HEIGHT / 8;

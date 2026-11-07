@@ -4,7 +4,10 @@ use embedded_graphics_core::{
     pixelcolor::BinaryColor,
     Pixel,
 };
-use oled_ssd_driver::{DisplaySize, Ssd1306, Ssd1306b, SIZE_128X32, SIZE_96X16};
+use oled_ssd_driver::{DisplaySize, Ssd1306, Ssd1306b};
+
+pub const DISPLAY_SIZE_128_32: DisplaySize = DisplaySize::new(128, 32);
+pub const DISPLAY_SIZE_96_16: DisplaySize = DisplaySize::new(96, 16);
 
 struct MockInterface {
     commands: Vec<Vec<u8>>,
@@ -34,20 +37,20 @@ impl oled_ssd_driver::interface::DisplayInterface for MockInterface {
 
 #[test]
 fn test_128x32_dimensions() {
-    let display = Ssd1306::new_with_size(MockInterface::new(), SIZE_128X32);
+    let display = Ssd1306::new_with_size(MockInterface::new(), DISPLAY_SIZE_128_32);
     assert_eq!(display.size(), Size::new(128, 32));
 }
 
 #[test]
 fn test_128x32_buffer_size() {
-    let display = Ssd1306::new_with_size(MockInterface::new(), SIZE_128X32);
+    let display = Ssd1306::new_with_size(MockInterface::new(), DISPLAY_SIZE_128_32);
     // 128 * 4 pages = 512 bytes
     assert_eq!(display.buffer().len(), 512);
 }
 
 #[test]
 fn test_128x32_pixel_bounds() {
-    let mut display = Ssd1306::new_with_size(MockInterface::new(), SIZE_128X32);
+    let mut display = Ssd1306::new_with_size(MockInterface::new(), DISPLAY_SIZE_128_32);
     // y=31 should work (last row)
     display.set_pixel(0, 31, true);
     assert_eq!(display.buffer()[3 * 128], 0x80);
@@ -60,7 +63,7 @@ fn test_128x32_pixel_bounds() {
 
 #[test]
 fn test_128x32_draw_target_clips() {
-    let mut display = Ssd1306::new_with_size(MockInterface::new(), SIZE_128X32);
+    let mut display = Ssd1306::new_with_size(MockInterface::new(), DISPLAY_SIZE_128_32);
     let pixels = [
         Pixel(Point::new(0, 0), BinaryColor::On),
         Pixel(Point::new(0, 31), BinaryColor::On),
@@ -77,7 +80,7 @@ fn test_128x32_draw_target_clips() {
 
 #[test]
 fn test_128x32_init_multiplex_ratio() {
-    let mut display = Ssd1306::new_with_size(MockInterface::new(), SIZE_128X32);
+    let mut display = Ssd1306::new_with_size(MockInterface::new(), DISPLAY_SIZE_128_32);
     display.init(&Default::default()).unwrap();
 
     let iface = display.release();
@@ -87,7 +90,7 @@ fn test_128x32_init_multiplex_ratio() {
 
 #[test]
 fn test_128x32_init_com_pin_sequential() {
-    let mut display = Ssd1306::new_with_size(MockInterface::new(), SIZE_128X32);
+    let mut display = Ssd1306::new_with_size(MockInterface::new(), DISPLAY_SIZE_128_32);
     display.init(&Default::default()).unwrap();
 
     let iface = display.release();
@@ -110,7 +113,7 @@ fn test_128x64_init_com_pin_alternative() {
 
 #[test]
 fn test_128x32_flush_data_size() {
-    let mut display = Ssd1306::new_with_size(MockInterface::new(), SIZE_128X32);
+    let mut display = Ssd1306::new_with_size(MockInterface::new(), DISPLAY_SIZE_128_32);
     display.init(&Default::default()).unwrap();
     display.flush().unwrap();
 
@@ -121,7 +124,7 @@ fn test_128x32_flush_data_size() {
 
 #[test]
 fn test_96x16_dimensions() {
-    let display = Ssd1306::new_with_size(MockInterface::new(), SIZE_96X16);
+    let display = Ssd1306::new_with_size(MockInterface::new(), DISPLAY_SIZE_96_16);
     assert_eq!(display.size(), Size::new(96, 16));
     assert_eq!(display.buffer().len(), 96 * 2); // 2 pages
 }
@@ -136,7 +139,7 @@ fn test_custom_size() {
 
 #[test]
 fn test_ssd1306b_custom_size() {
-    let mut display = Ssd1306b::new_with_size(MockInterface::new(), SIZE_128X32);
+    let mut display = Ssd1306b::new_with_size(MockInterface::new(), DISPLAY_SIZE_128_32);
     assert_eq!(display.size(), Size::new(128, 32));
 
     display.init(&Default::default()).unwrap();
